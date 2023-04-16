@@ -1,0 +1,14 @@
+BalaC balancing robot (IMU:MPU6886)
+
+
+Robot Setup instructions:
+
+1. Lay the robot flat, and power on.
+2. Wait until Gal-1 (Pitch Gyro calibration) completes.
+3. Hold still the robot upright in balance until Cal-2 (Accel & Yaw Gyro cal)
+completes.
+
+
+short push of power button: Gyro calibration
+long push (>1sec) of power button: switch mode between standig and
+demo(circle)
