@@ -1,9 +1,7 @@
-based on https://github.com/m5stack/M5-ProductExampleCodes/blob/master/App/BalaC/Arduino/Balac/Balac.ino
-
-BalaC balancing robot (IMU:MPU6886)
+# BalaC balancing robot (IMU:MPU6886)
 
 
-Robot Setup instructions:
+## Robot Setup instructions:
 
 1. Lay the robot flat, and power on.
 2. Wait until Gal-1 (Pitch Gyro calibration) completes.
@@ -14,3 +12,5 @@ completes.
 short push of power button: Gyro calibration
 long push (>1sec) of power button: switch mode between standig and
 demo(circle)
+
+#### based on [https://github.com/m5stack/M5-ProductExampleCodes/blob/master/App/BalaC/Arduino/Balac/Balac.ino](https://github.com/m5stack/M5-ProductExampleCodes/blob/master/App/BalaC/Arduino/Balac/Balac.ino)
