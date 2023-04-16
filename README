@@ -1,3 +1,5 @@
+###### READMEv1.0 <br/> Made with ❤️ by [Felipe Galindo](https://felipegalind0.github.io)
+
 # BalaC balancing robot (IMU:MPU6886)
 
 
@@ -13,4 +15,4 @@ short push of power button: Gyro calibration
 long push (>1sec) of power button: switch mode between standig and
 demo(circle)
 
-#### based on [https://github.com/m5stack/M5-ProductExampleCodes/blob/master/App/BalaC/Arduino/Balac/Balac.ino](https://github.com/m5stack/M5-ProductExampleCodes/blob/master/App/BalaC/Arduino/Balac/Balac.ino)
+Based on [https://github.com/m5stack/M5-ProductExampleCodes/blob/master/App/BalaC/Arduino/Balac/Balac.ino](https://github.com/m5stack/M5-ProductExampleCodes/blob/master/App/BalaC/Arduino/Balac/Balac.ino)
