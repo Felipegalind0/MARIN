@@ -1,5 +1,5 @@
-#ifndef __MOVEMENT_H_
-#define __MOVEMENT_H_
+#ifndef _MOVEMENT_H
+#define _MOVEMENT_H
 
 #include <M5StickCPlus.h>
 
@@ -27,5 +27,7 @@ void startDemo();
 void sendStatus();
 void readGyro();
 void readGyro();
+
+void dispAngle();
 
 #endif 

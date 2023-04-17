@@ -1,8 +1,10 @@
 #include <M5StickCPlus.h>
 #include "movement.h"
+#include "speaker.h"
 #include "pinout.h"
+#include "LCD.h"
 
-
+// Variables and stuff
 boolean serialMonitor = true;
 boolean standing      = false;
 int16_t counter       = 0;
@@ -35,11 +37,21 @@ float vBatt, voltAve             = 3.7;
 int16_t punchPwr, punchPwr2, punchDur, punchCountL = 0, punchCountR = 0;
 byte demoMode = 0;
 
+// Setup Code
 void Movement_Setup() {
+    //StartUp IMU
     imuInit();
+
+    //Zero Motors
     resetMotor();
+
+    // Reset to Default Parameters
     resetPara();
+
+    //Zero Out Variables
     resetVar();
+
+    // Run Calibration1
     calib1();
 #ifdef DEBUG
     debugSetup();
@@ -48,33 +60,59 @@ void Movement_Setup() {
 #endif
 }
 
+
+// Main Loop 
 void Movement_Loop() {
+
     checkButtonP();
-#ifdef DEBUG
-    if (debugLoop1()) return;
-#endif
+
+    #ifdef DEBUG
+        if (debugLoop1()) return;
+    #endif
+
     getGyro();
-    if (!standing) {
-        dispBatVolt();
+
+    if (!standing) { // If Robot is not Standing
+
         aveAbsOmg = aveAbsOmg * 0.9 + abs(varOmg) * 0.1;
         aveAccZ   = aveAccZ * 0.9 + accZdata * 0.1;
-        M5.Lcd.setCursor(30, 130);
-        M5.Lcd.printf("%5.2f   ", -aveAccZ);
+
+        dispBatVolt();
+        dispAngle();
+
+        // 0.9*90= 72
+//if Pointed 72 deg up 
         if (abs(aveAccZ) > 0.9 && aveAbsOmg < 1.5) {
+
+            // Run Second Calibration
             calib2();
+
             if (demoMode == 1) startDemo();
+
             standing = true;
         }
-    } else {
+    } 
+
+    else { // Check if Robot has fallen and disable
         if (abs(varAng) > 30.0 || counterOverPwr > maxOvp) {
+
             resetMotor();
+
             resetVar();
+
             standing = false;
+
             setMode(false);
-        } else {
-            drive();
+
+        } 
+        
+        else { //Robot is okay to drive
+
+            drive(); // What makes it move
         }
+
     }
+
     counter += 1;
     if (counter >= 100) {
         counter = 0;
@@ -86,13 +124,13 @@ void Movement_Loop() {
     time0 = time1;
 }
 
+
+// First Calibration
 void calib1() {
     calDelay(30);
     digitalWrite(LED, LOW);
     calDelay(80);
-    M5.Lcd.fillScreen(BLACK);
-    M5.Lcd.setCursor(30, LCDV_MID);
-    M5.Lcd.print(" Cal-1  ");
+    calib1_Message();
     gyroYoffset = 0.0;
     for (int i = 0; i < N_CAL1; i++) {
         readGyro();
@@ -104,6 +142,7 @@ void calib1() {
     digitalWrite(LED, HIGH);
 }
 
+// Second Calibration
 void calib2() {
     resetVar();
     resetMotor();
@@ -125,12 +164,22 @@ void calib2() {
     digitalWrite(LED, HIGH);
 }
 
+//Check if button has been pressed
 void checkButtonP() {
     byte pbtn = M5.Axp.GetBtnPress();
-    if (pbtn == 2)
-        calib1();  // short push
-    else if (pbtn == 1)
+    if (pbtn == 2){
+
+        Shutdown_Sound();
+
+        esp_restart();
+
+    }
+        
+        
+    else if (pbtn == 1){
         setMode(true);  // long push
+    }
+
 }
 
 void calDelay(int n) {
@@ -138,16 +187,6 @@ void calDelay(int n) {
         getGyro();
         delay(9);
     }
-}
-
-void setMode(bool inc) {
-    if (inc) demoMode = ++demoMode % 2;
-    M5.Lcd.fillScreen(BLACK);
-    M5.Lcd.setCursor(30, 5);
-    if (demoMode == 0)
-        M5.Lcd.print("Stand ");
-    else if (demoMode == 1)
-        M5.Lcd.print("Demo ");
 }
 
 void startDemo() {
@@ -345,8 +384,37 @@ void imuInit() {
     if (serialMonitor) Serial.println("MPU6886 found");
 }
 
+// -------Functions that should be run on second core-------
+
+// Show Battery Voltage On Display
 void dispBatVolt() {
-    M5.Lcd.setCursor(35, LCDV_MID);
+    M5.Lcd.setTextFont(4);
+    M5.Lcd.setTextSize(1);
+    M5.Lcd.setCursor(LCD_BTv_X, LCD_BTv_Y);
     vBatt = M5.Axp.GetBatVoltage();
     M5.Lcd.printf("%4.2fv ", vBatt);
+}
+
+void dispAngle() {
+    M5.Lcd.setTextFont(4);
+    M5.Lcd.setTextSize(1);
+    M5.Lcd.setCursor(30, 130);
+    M5.Lcd.printf("%5.0f   ", (-aveAccZ)*90.0);
+}
+
+void setMode(bool inc) {
+    if (inc) demoMode = ++demoMode % 2;
+
+    M5.Lcd.setTextFont(4);
+    M5.Lcd.setTextSize(1);
+
+    M5.Lcd.fillScreen(BLACK);
+    M5.Lcd.setCursor(30, 5);
+    
+    if (demoMode == 0)
+        M5.Lcd.print("Stand ");
+
+    else if (demoMode == 1)
+        M5.Lcd.print("Demo ");
+
 }
