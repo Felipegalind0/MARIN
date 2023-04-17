@@ -10,9 +10,9 @@
 3. Hold still the robot upright in balance until Cal-2 (Accel & Yaw Gyro cal)
 completes.
 
+**short push of power button**: Gyro calibration
 
-short push of power button: Gyro calibration
-long push (>1sec) of power button: switch mode between standig and
+**long push (>1sec) of power button**: switch mode between standig and
 demo(circle)
 
-Based on [https://github.com/m5stack/M5-ProductExampleCodes/blob/master/App/BalaC/Arduino/Balac/Balac.ino](https://github.com/m5stack/M5-ProductExampleCodes/blob/master/App/BalaC/Arduino/Balac/Balac.ino)
+#### Based on [https://github.com/m5stack/M5-ProductExampleCodes/blob/master/App/BalaC/Arduino/Balac/Balac.ino](https://github.com/m5stack/M5-ProductExampleCodes/blob/master/App/BalaC/Arduino/Balac/Balac.ino)
