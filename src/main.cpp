@@ -17,11 +17,13 @@ long push (>1sec) of power button: switch mode between standig and demo(circle)
 
 TaskHandle_t Task0;
 
-// void RealTcode( void * pvParameters ){
-
-//   Movement_Loop(); //Main Loop
-
-// }
+void RealTcode( void * pvParameters ){
+  Serial.print("loop() running on core ");
+  Serial.println(xPortGetCoreID());
+  while(true){
+    Movement_Loop(); //Main Loop
+  }
+}
 
 void setup() {
   // Start systems
@@ -29,23 +31,28 @@ void setup() {
 
     Movement_Setup();
 
-    // //create a task that will be executed in the Task1code() function, with priority 1 and executed on core 0
-    // xTaskCreatePinnedToCore(
-    //                   RealTcode,   /* Task function. */
-    //                   "Task0",     /* name of task. */
-    //                   10000,       /* Stack size of task */
-    //                   NULL,        /* parameter of the task */
-    //                   1,           /* priority of the task */
-    //                   &Task1,      /* Task handle to keep track of created task */
-    //                   0);          /* pin task to core 0 */                  
-    // delay(500); 
+    //create a task that will be executed in the Task1code() function, with priority 1 and executed on core 0
+    xTaskCreatePinnedToCore(
+                      RealTcode,   /* Task function. */
+                      "Task0",     /* name of task. */
+                      10000,       /* Stack size of task */
+                      NULL,        /* parameter of the task */
+                      1,           /* priority of the task */
+                      &Task0,      /* Task handle to keep track of created task */
+                      0);          /* pin task to core 0 */                  
+    delay(500); 
 
     
 
   // Validate StartUp
     SysInit_Check();
+  
+  Serial.print("Setup() running on core ");
+  Serial.println(xPortGetCoreID());
 }
 
 void loop() {
-  Movement_Loop();
+  // Serial.print("loop() running on core ");
+  // Serial.println(xPortGetCoreID());
+  //Movement_Loop();
 }
