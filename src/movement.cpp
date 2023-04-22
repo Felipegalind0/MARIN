@@ -114,10 +114,11 @@ void Movement_Loop() {
     }
 
     counter += 1;
-    if (counter >= 100) {
-        counter = 0;
+    if ((counter % 100) == 0) {
         dispBatVolt();
         if (serialMonitor) sendStatus();
+        Serial.print("COM() running on core ");
+        Serial.println(xPortGetCoreID());
     }
     do time1 = millis();
     while (time1 - time0 < interval);

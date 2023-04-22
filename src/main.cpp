@@ -15,19 +15,25 @@ long push (>1sec) of power button: switch mode between standig and demo(circle)
 #include "movement.h"
 #include "systeminit.h"
 
-TaskHandle_t Task0;
+TaskHandle_t Task0, Task1;
+
 
 void RealTcode( void * pvParameters ){
-  Serial.print("loop() running on core ");
+  Serial.print("RT_loop() running on core ");
   Serial.println(xPortGetCoreID());
-  while(true){
+
+  for(;;){
     Movement_Loop(); //Main Loop
   }
+
 }
 
 void setup() {
   // Start systems
     SysInit_Setup();
+
+    Serial.print("Setup() running on core ");
+    Serial.println(xPortGetCoreID());
 
     Movement_Setup();
 
@@ -47,8 +53,6 @@ void setup() {
   // Validate StartUp
     SysInit_Check();
   
-  Serial.print("Setup() running on core ");
-  Serial.println(xPortGetCoreID());
 }
 
 void loop() {
