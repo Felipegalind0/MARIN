@@ -3,6 +3,7 @@
 #include "speaker.h"
 #include "pinout.h"
 #include "LCD.h"
+#include <WebSerial.h>
 
 // Variables and stuff
 boolean serialMonitor = true;
@@ -354,18 +355,18 @@ void resetVar() {
 }
 
 void sendStatus() {
-    Serial.print(millis() - time0);
-    Serial.print(" stand=");
-    Serial.print(standing);
-    Serial.print(" accX=");
-    Serial.print(accXdata);
-    Serial.print(" power=");
-    Serial.print(power);
-    Serial.print(" ang=");
-    Serial.print(varAng);
-    Serial.print(", ");
-    Serial.print(millis() - time0);
-    Serial.println();
+    WebSerial.print(String(millis() - time0));
+    WebSerial.print(" stand=");
+    WebSerial.print(standing);
+    WebSerial.print(" accX=");
+    WebSerial.print(accXdata);
+    WebSerial.print(" power=");
+    WebSerial.print(power);
+    WebSerial.print(" ang=");
+    WebSerial.print(varAng);
+    WebSerial.print(", ");
+    WebSerial.print(String(millis() - time0));
+    WebSerial.println();
 }
 
 void imuInit() {
@@ -381,7 +382,7 @@ void imuInit() {
     M5.Imu.SetGyroFsr(
     M5.Imu.GFS_250DPS);  // 250DPS 500DPS 1000DPS 2000DPS
     M5.Imu.SetAccelFsr(M5.Imu.AFS_4G);  // 2G 4G 8G 16G
-    if (serialMonitor) Serial.println("MPU6886 found");
+    if (serialMonitor) WebSerial.println("MPU6886 found");
 }
 
 // -------Functions that should be run on second core-------
