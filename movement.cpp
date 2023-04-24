@@ -37,27 +37,6 @@ float vBatt, voltAve             = 3.7;
 int16_t punchPwr, punchPwr2, punchDur, punchCountL = 0, punchCountR = 0;
 byte demoMode = 0;
 
-
-void Movement_UpdateRotation(int rotation) {
-  moveRate = 0.0;
-  spinContinuous = false;
-  spinStep = 0.0;
-
-  if (abs(rotation) > 4) {
-    moveRate = -2.0;
-    spinContinuous = true;
-    spinStep = (rotation > 4 ? -40.0 : 40.0) * clk;
-  }
-}
-
-void Movement_UpdateMovement(int movement) {
-  moveRate = 0.0;
-
-  if (abs(movement) > 4) {
-    moveRate = (movement > 4 ? -2.0 : 2.0);
-  }
-}
-
 // Setup Code
 void Movement_Setup() {
     //StartUp IMU
