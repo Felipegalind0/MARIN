@@ -94,22 +94,22 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
 
   memcpy(&myData, incomingData, sizeof(myData));
 
-  Serial.print("Bytes received: ");
-  Serial.println(len);
-  Serial.print("Char: ");
-  Serial.println(myData.a);
+  // Serial.print("Bytes received: ");
+  // Serial.println(len);
+  // Serial.print("Char: ");
+  // Serial.println(myData.a);
 
   processCharArray(); // Call the function to process the received data
 
   Serial.print("X: ");
-  Serial.println(x);
-
-  Serial.print("Y: ");
+  Serial.print(x);
+  Serial.print("    Y: ");
   Serial.println(y);
+
 }
 
 
-void RealTcode( void * pvParameters ){
+void RealTcode( void * pvParameters ){ //Code that needs to run in real time
   Serial.print("RT_loop() running on core ");
   Serial.println(xPortGetCoreID());
 
@@ -162,7 +162,7 @@ void setup() {
                       1,           /* priority of the task */
                       &Task1,      /* Task handle to keep track of created task */
                       1);          /* pin task to core 0 */                  
-    delay(500); 
+    vTaskDelay(500); 
 
     
 

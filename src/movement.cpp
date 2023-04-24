@@ -158,7 +158,7 @@ void calib1() {
     for (int i = 0; i < N_CAL1; i++) {
         readGyro();
         gyroYoffset += gyroYdata;
-        delay(9);
+        vTaskDelay(9);
     }
     gyroYoffset /= (float)N_CAL1;
     M5.Lcd.fillScreen(BLACK);
@@ -179,7 +179,7 @@ void calib2() {
         readGyro();
         accXoffset += accXdata;
         gyroZoffset += gyroZdata;
-        delay(9);
+        vTaskDelay(9);
     }
     accXoffset /= (float)N_CAL2;
     gyroZoffset /= (float)N_CAL2;
@@ -208,7 +208,7 @@ void checkButtonP() {
 void calDelay(int n) {
     for (int i = 0; i < n; i++) {
         getGyro();
-        delay(9);
+        vTaskDelay(9);
     }
 }
 

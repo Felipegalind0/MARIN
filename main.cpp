@@ -79,7 +79,7 @@ void setup() {
                       1,           /* priority of the task */
                       &Task0,      /* Task handle to keep track of created task */
                       1);          /* pin task to core 0 */                  
-    delay(500); 
+    vTaskDelay(500); 
 
     
 
