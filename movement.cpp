@@ -3,7 +3,6 @@
 #include "speaker.h"
 #include "pinout.h"
 #include "LCD.h"
-#include <WebSerial.h>
 
 // Variables and stuff
 boolean serialMonitor = true;
@@ -37,27 +36,6 @@ int16_t motorLdir = 0, motorRdir = 0;  // 0:stop 1:+ -1:-
 float vBatt, voltAve             = 3.7;
 int16_t punchPwr, punchPwr2, punchDur, punchCountL = 0, punchCountR = 0;
 byte demoMode = 0;
-
-
-void Movement_UpdateRotation(int rotation) {
-  moveRate = 0.0;
-  spinContinuous = false;
-  spinStep = 0.0;
-
-  if (abs(rotation) > 4) {
-    moveRate = -2.0;
-    spinContinuous = true;
-    spinStep = (rotation > 4 ? -40.0 : 40.0) * clk;
-  }
-}
-
-void Movement_UpdateMovement(int movement) {
-  moveRate = 0.0;
-
-  if (abs(movement) > 4) {
-    moveRate = (movement > 4 ? -2.0 : 2.0);
-  }
-}
 
 // Setup Code
 void Movement_Setup() {
@@ -377,18 +355,18 @@ void resetVar() {
 }
 
 void sendStatus() {
-    WebSerial.print(String(millis() - time0));
-    WebSerial.print(" stand=");
-    WebSerial.print(standing);
-    WebSerial.print(" accX=");
-    WebSerial.print(accXdata);
-    WebSerial.print(" power=");
-    WebSerial.print(power);
-    WebSerial.print(" ang=");
-    WebSerial.print(varAng);
-    WebSerial.print(", ");
-    WebSerial.print(String(millis() - time0));
-    WebSerial.println();
+    Serial.print(millis() - time0);
+    Serial.print(" stand=");
+    Serial.print(standing);
+    Serial.print(" accX=");
+    Serial.print(accXdata);
+    Serial.print(" power=");
+    Serial.print(power);
+    Serial.print(" ang=");
+    Serial.print(varAng);
+    Serial.print(", ");
+    Serial.print(millis() - time0);
+    Serial.println();
 }
 
 void imuInit() {
@@ -404,7 +382,7 @@ void imuInit() {
     M5.Imu.SetGyroFsr(
     M5.Imu.GFS_250DPS);  // 250DPS 500DPS 1000DPS 2000DPS
     M5.Imu.SetAccelFsr(M5.Imu.AFS_4G);  // 2G 4G 8G 16G
-    if (serialMonitor) WebSerial.println("MPU6886 found");
+    if (serialMonitor) Serial.println("MPU6886 found");
 }
 
 // -------Functions that should be run on second core-------
