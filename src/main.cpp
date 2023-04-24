@@ -40,7 +40,7 @@ void recvMsg(uint8_t *data, size_t len){
   for(int i=0; i < len; i++){
     d += char(data[i]);
   }
-  WebSerial.println(d);
+  //WebSerial.println(d);
 }
 
 #include <esp_now.h>
@@ -123,7 +123,6 @@ void setup() {
   // Start systems
     SysInit_Setup();
 
-
     WiFi.mode(WIFI_AP_STA);
     WiFi.begin(ssid, password);
     if (WiFi.waitForConnectResult() != WL_CONNECTED) {
@@ -133,6 +132,9 @@ void setup() {
     Serial.print("IP Address: ");
     Serial.println(WiFi.localIP());
     // WebSerial is accessible at "<IP Address>/webserial" in browser
+    WiFi.softAP(AP_ssid);
+    //WiFi.softAP(AP_ssid, AP_password);
+
     WebSerial.begin(&server);
     /* Attach Message Callback */
     WebSerial.msgCallback(recvMsg);

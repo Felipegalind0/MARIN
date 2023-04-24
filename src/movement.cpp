@@ -10,7 +10,7 @@ boolean serialMonitor = true;
 boolean standing      = false;
 int16_t counter       = 0;
 uint32_t time0 = 0, time1 = 0;
-int16_t counterOverPwr = 0, maxOvp = 20;
+int16_t counterOverPwr = 0, maxOvp = 40;
 float power, powerR, powerL, yawPower;
 float varAng, varOmg, varSpd, varDst, varIang;
 float gyroXoffset, gyroYoffset, gyroZoffset, accXoffset;
@@ -43,9 +43,9 @@ void Movement_UpdateRotation(int rotation) {
   moveRate = 0.0;
   spinContinuous = false;
   spinStep = 0.0;
-
-  if (abs(rotation) > 4) {
-    moveRate = -2.0;
+  int s = abs(rotation);
+  if (s > 0) {
+    moveRate = -(s);
     spinContinuous = true;
     spinStep = (rotation > 4 ? -40.0 : 40.0) * clk;
   }
@@ -54,7 +54,7 @@ void Movement_UpdateRotation(int rotation) {
 void Movement_UpdateMovement(int movement) {
   moveRate = 0.0;
 
-  if (abs(movement) > 4) {
+  if (abs(movement) > 0) {
     moveRate = (movement > 4 ? -2.0 : 2.0);
   }
 }
@@ -116,18 +116,15 @@ void Movement_Loop() {
     } 
 
     else { // Check if Robot has fallen and disable
-        if (abs(varAng) > 30.0 || counterOverPwr > maxOvp) {
 
-            resetMotor();
-
-            resetVar();
-
-            standing = false;
-
-            setMode(false);
-
+        if (abs(varAng) > 45.0) {
+            WebSerial.print("Max angle exceeded, aborting");
         } 
-        
+
+        if (counterOverPwr > maxOvp) { 
+            WebSerial.print("Max Power exceeded, aborting");
+        } 
+
         else { //Robot is okay to drive
 
             drive(); // What makes it move
@@ -145,6 +142,16 @@ void Movement_Loop() {
     do time1 = millis();
     while (time1 - time0 < interval);
     time0 = time1;
+}
+
+void abort(){
+    resetMotor();
+
+    resetVar();
+
+    standing = false;
+
+    setMode(false);
 }
 
 
