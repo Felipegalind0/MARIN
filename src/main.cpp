@@ -49,7 +49,7 @@ void processCharArray() {
         int signY = (myData.a[4] == '-') ? -1 : 1;
         int digit1Y = myData.a[5] - '0';
         int digit2Y = myData.a[6] - '0';
-        y = signY * (digit1Y * 10 + digit2Y);
+        y = signY * -(digit1Y * 10 + digit2Y);
       }
     }
   }
