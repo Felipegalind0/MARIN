@@ -14,11 +14,37 @@ long push (>1sec) of power button: switch mode between standig and demo(circle)
 */
 #include "movement.h"
 #include "systeminit.h"
+#include <Arduino.h>
+#include "creds.h"
+
+#if defined(ESP8266)
+  #include <ESP8266WiFi.h>
+  #include <ESPAsyncTCP.h>
+#elif defined(ESP32)
+  #include <WiFi.h>
+  #include <AsyncTCP.h>
+#endif
+#include <ESPAsyncWebServer.h>
+#include <WebSerial.h>
+
+AsyncWebServer server(80);
+
+
+
+/* Message callback of WebSerial */
+void recvMsg(uint8_t *data, size_t len){
+  WebSerial.println("Received Data...");
+  String d = "";
+  for(int i=0; i < len; i++){
+    d += char(data[i]);
+  }
+  WebSerial.println(d);
+}
 
 #include <esp_now.h>
 #include <WiFi.h>
 
-TaskHandle_t Task0, Task1;
+
 
 // Structure example to receive data
 // Must match the sender structure
@@ -95,7 +121,20 @@ void setup() {
   // Start systems
     SysInit_Setup();
 
-    WiFi.mode(WIFI_AP);
+
+    WiFi.mode(WIFI_STA);
+    WiFi.begin(ssid, password);
+    if (WiFi.waitForConnectResult() != WL_CONNECTED) {
+        Serial.printf("WiFi Failed!\n");
+        return;
+    }
+    Serial.print("IP Address: ");
+    Serial.println(WiFi.localIP());
+    // WebSerial is accessible at "<IP Address>/webserial" in browser
+    WebSerial.begin(&server);
+    /* Attach Message Callback */
+    WebSerial.msgCallback(recvMsg);
+    server.begin();
 
     // Init ESP-NOW
     if (esp_now_init() != ESP_OK) {
