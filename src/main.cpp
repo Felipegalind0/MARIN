@@ -29,6 +29,8 @@ long push (>1sec) of power button: switch mode between standig and demo(circle)
 
 AsyncWebServer server(80);
 
+TaskHandle_t Task0, Task1;
+
 
 
 /* Message callback of WebSerial */
@@ -122,7 +124,7 @@ void setup() {
     SysInit_Setup();
 
 
-    WiFi.mode(WIFI_STA);
+    WiFi.mode(WIFI_AP_STA);
     WiFi.begin(ssid, password);
     if (WiFi.waitForConnectResult() != WL_CONNECTED) {
         Serial.printf("WiFi Failed!\n");
@@ -158,7 +160,7 @@ void setup() {
                       10000,       /* Stack size of task */
                       NULL,        /* parameter of the task */
                       1,           /* priority of the task */
-                      &Task0,      /* Task handle to keep track of created task */
+                      &Task1,      /* Task handle to keep track of created task */
                       1);          /* pin task to core 0 */                  
     delay(500); 
 
