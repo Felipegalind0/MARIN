@@ -1,7 +1,6 @@
 ###### READMEv1.0 <br/> Made with ❤️ by [Felipe Galindo](https://felipegalind0.github.io)
 
 # MARIN
-
 ## BalaC balancing robot (IMU:MPU6886)
 
 
