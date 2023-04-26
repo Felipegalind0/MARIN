@@ -1,7 +1,6 @@
 #include <M5StickCPlus.h>
 #include "variables.h"
 #include "movement.h"
-#include "speaker.h"
 #include "pinout.h"
 #include "LCD.h"
 #include <WebSerial.h>
@@ -44,6 +43,7 @@ void Movement_Setup() {
     // Run Calibration1
     LCD_calib1_Message();
     calib1();
+    LCD_calib1_complete_Message();
 #ifdef DEBUG
     debugSetup();
 #else
@@ -55,15 +55,17 @@ void Movement_Setup() {
 // Main Loop 
 void Movement_Loop() {
     
-    checkButtonP();
-
     #ifdef DEBUG
         if (debugLoop1()) return;
     #endif
 
     getGyro();
 
-    if (!standing) { // If Robot is not Standing
+    if (hasFallen){
+        ;;
+    }
+
+    else if (!standing) { // If Robot is not Standing
 
         aveAbsOmg = aveAbsOmg * 0.9 + abs(varOmg) * 0.1;
         aveAccZ   = aveAccZ * 0.9 + accZdata * 0.1;
@@ -72,10 +74,11 @@ void Movement_Loop() {
         LCD_DispAngle();
 
         // 0.9*90= 72
-//if Pointed 72 deg up 
+        //if Pointed 72 deg up 
         if (abs(aveAccZ) > 0.9 && aveAbsOmg < 1.5) {
 
             // Run Second Calibration
+            LCD_calib2_Message();
             calib2();
 
             if (demoMode == 1) startDemo();
@@ -87,11 +90,11 @@ void Movement_Loop() {
     else { // Check if Robot has fallen and disable
 
         if (abs(varAng) > 45.0) {
-            WebSerial.print("Max angle exceeded, aborting");
+            Abort("Max DEG");
         } 
 
         if (counterOverPwr > maxOvp) { 
-            WebSerial.print("Max Power exceeded, aborting");
+            Abort("Max PWR");
         } 
 
         else { //Robot is okay to drive
@@ -101,19 +104,14 @@ void Movement_Loop() {
 
     }
 
-    counter += 1;
-    if ((counter % 100) == 0) {
-        LCD_DispBatVolt();
-        if (serialMonitor) sendStatus();
-        Serial.print("COM() running on core ");
-        Serial.println(xPortGetCoreID());
-    }
-    do time1 = millis();
-    while (time1 - time0 < interval);
-    time0 = time1;
 }
 
-void abort(){
+void Abort(String MSG){
+    WebSerial.print(MSG);
+
+    standing = false;
+    hasFallen = true;
+
     resetMotor();
 
     resetVar();
@@ -121,6 +119,8 @@ void abort(){
     standing = false;
 
     setMode(false);
+
+    LCD_Abort_Message(MSG);
 }
 
 
@@ -163,23 +163,7 @@ void calib2() {
     digitalWrite(LED, HIGH);
 }
 
-//Check if button has been pressed
-void checkButtonP() {
-    byte pbtn = M5.Axp.GetBtnPress();
-    if (pbtn == 2){
 
-        Shutdown_Sound();
-
-        esp_restart();
-
-    }
-        
-        
-    else if (pbtn == 1){
-        setMode(true);  // long push
-    }
-
-}
 
 void calDelay(int n) {
     for (int i = 0; i < n; i++) {
@@ -336,37 +320,6 @@ void resetMotor() {
     counterOverPwr = 0;
 }
 
-void resetVar() {
-    power          = 0.0;
-    moveTarget     = 0.0;
-    moveRate       = 0.0;
-    spinContinuous = false;
-    spinDest       = 0.0;
-    spinTarget     = 0.0;
-    spinStep       = 0.0;
-    yawAngle       = 0.0;
-    varAng         = 0.0;
-    varOmg         = 0.0;
-    varDst         = 0.0;
-    varSpd         = 0.0;
-    varIang        = 0.0;
-}
-
-void sendStatus() {
-    WebSerial.print(String(millis() - time0));
-    WebSerial.print(" stand=");
-    WebSerial.print(standing);
-    WebSerial.print(" accX=");
-    WebSerial.print(accXdata);
-    WebSerial.print(" power=");
-    WebSerial.print(power);
-    WebSerial.print(" ang=");
-    WebSerial.print(varAng);
-    WebSerial.print(", ");
-    WebSerial.print(String(millis() - time0));
-    WebSerial.println();
-}
-
 void imuInit() {
     M5.Imu.Init();
     // if (M5.Imu.imuType = M5.Imu.IMU_MPU6886) {
@@ -383,17 +336,4 @@ void imuInit() {
     if (serialMonitor) WebSerial.println("MPU6886 found");
 }
 
-// -------Functions that should be run on second core-------
 
-// Show Battery Voltage On Display
-
-void setMode(bool inc) {
-    if (inc) demoMode = ++demoMode % 2;
-
-    LCD_Update_Mode();
-}
-
-void updateBatVolt(){
-    vBatt = M5.Axp.GetBatVoltage();
-    LCD_DispBatVolt();
-}

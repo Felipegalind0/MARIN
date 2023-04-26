@@ -54,6 +54,41 @@ void LCD_calib1_Message(void){
     M5.Lcd.setTextColor(WHITE);
 }
 
+void LCD_calib1_complete_Message(void){
+    M5.Lcd.setTextFont(2);
+    M5.Lcd.setTextSize(1);
+    M5.Lcd.setTextColor(RED);
+
+    M5.Lcd.setCursor(CLB1_M_X, CLB1_M_Y);
+    M5.Lcd.print("Stationary");
+
+
+    M5.Lcd.setCursor(CLB1_M_X, CLB1_M_Y + 15);
+    M5.Lcd.print("Calibration");
+
+    M5.Lcd.setCursor(CLB1_M_X, CLB1_M_Y + 30);
+    M5.Lcd.print("Complete");
+
+    M5.Lcd.setTextColor(WHITE);
+}
+
+void LCD_calib2_Message(void){
+    M5.Lcd.setTextFont(2);
+    M5.Lcd.setTextSize(1);
+    M5.Lcd.setTextColor(RED);
+
+    M5.Lcd.setCursor(CLB1_M_X, CLB1_M_Y);
+    M5.Lcd.print("Executing");
+
+    M5.Lcd.setCursor(CLB1_M_X, CLB1_M_Y + 15);
+    M5.Lcd.print("Balance");
+
+    M5.Lcd.setCursor(CLB1_M_X, CLB1_M_Y + 30);
+    M5.Lcd.print("Calibration");
+
+    M5.Lcd.setTextColor(WHITE);
+}
+
 void LCD_Setup(){
     M5.Axp.ScreenBreath(11);
     M5.Lcd.setRotation(2);
@@ -109,4 +144,21 @@ void LCD_Update_Mode(){
     else if (demoMode == 1)
         M5.Lcd.print("Demo ");
 
+}
+
+void LCD_Abort_Message(String MSG){
+    M5.Lcd.setTextFont(2);
+    M5.Lcd.setTextSize(1);
+    M5.Lcd.setTextColor(RED);
+
+    M5.Lcd.setCursor(CLB1_M_X, CLB1_M_Y);
+    M5.Lcd.print("Aborting..");
+
+    M5.Lcd.setCursor(CLB1_M_X, CLB1_M_Y + 15);
+    M5.Lcd.print("Reason:");
+
+    M5.Lcd.setCursor(CLB1_M_X, CLB1_M_Y + 30);
+    M5.Lcd.print(MSG);
+
+    M5.Lcd.setTextColor(WHITE);
 }

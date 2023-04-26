@@ -46,10 +46,14 @@ void LCD_CORE_Message();
 void LCD_IMU_Message();
 void LCD_Felg_Message();
 void LCD_calib1_Message();
+void LCD_calib1_complete_Message(void);
+
+void LCD_calib2_Message(void);
 
 void LCD_DispBatVolt();
 void LCD_DispAngle();
 void LCD_Update_Mode();
 
+void LCD_Abort_Message(String MSG);
 
 #endif

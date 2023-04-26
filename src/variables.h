@@ -4,9 +4,12 @@
 #include <M5StickCPlus.h>
 
 extern int x, y;
+
 extern float vBatt, voltAve;
+
+extern boolean standing, hasFallen;
+
 extern boolean serialMonitor;
-extern boolean standing;
 extern int16_t counter;
 extern uint32_t time0, time1;
 extern int16_t counterOverPwr, maxOvp;
@@ -35,5 +38,10 @@ extern int16_t ipowerL, ipowerR;
 extern int16_t motorLdir, motorRdir;
 extern int16_t punchPwr, punchPwr2, punchDur, punchCountL, punchCountR;
 extern byte demoMode;
+
+void updateBatVolt();
+void setMode(bool inc);
+
+void resetVar();
 
 #endif // _VARIABLES_H_

@@ -1,4 +1,5 @@
 #include "variables.h"
+#include "LCD.h"
 
 // These are the 2 important global variables that are linked by variables.h
 
@@ -10,6 +11,7 @@ float vBatt, voltAve             = 3.7;
 // Variables and stuff
 boolean serialMonitor = true;
 boolean standing      = false;
+boolean hasFallen     = false;
 int16_t counter       = 0;
 uint32_t time0 = 0, time1 = 0;
 int16_t counterOverPwr = 0, maxOvp = 40;

@@ -1,4 +1,5 @@
-
+#include "variables.h"
+#include <WebSerial.h>
 
 void sendStatus() {
     WebSerial.print(String(millis() - time0));

@@ -111,12 +111,31 @@ long push (>1sec) of power button: switch mode between standig and demo(circle)
 */
 
 #include "systeminit.h"
+#include "speaker.h"
 #include "movement.h"
 #include "variables.h"
+#include "LCD.h"
 
 TaskHandle_t Task0, Task1;
 
 
+//Check if button has been pressed
+void CheckButtonP() {
+    byte pbtn = M5.Axp.GetBtnPress();
+    if (pbtn == 2){
+
+        Shutdown_Sound();
+
+        esp_restart();
+
+    }
+        
+        
+    else if (pbtn == 1){
+        setMode(true);  // long push
+    }
+
+}
 
 //Code that needs to run in real time
 void RealTcode( void * pvParameters ){ 
@@ -124,15 +143,31 @@ void RealTcode( void * pvParameters ){
   //WebSerial.println(xPortGetCoreID());
 
   for(;;){
-    Movement_Loop(); //Main Loop
+    
+    CheckButtonP();
+
+    Movement_Loop();
+    
+    counter += 1;
+
+    if ((counter % 100) == 0) {
+        LCD_DispBatVolt();
+        if (serialMonitor) sendStatus();
+        Serial.print("COM() running on core ");
+        Serial.println(xPortGetCoreID());
+    }
+
+    do time1 = millis();
+    while (time1 - time0 < interval);
+    time0 = time1;
   }
 
 }
 
 
-
 void setup() {
   // Start systems
+  //setCpuFrequencyMhz(512);
     SysInit_Setup();
 
     Movement_Setup();
@@ -156,8 +191,8 @@ void setup() {
 }
 
 
-
 void loop() {
+  vTaskDelete(NULL);
   // Serial.print("loop() running on core ");
   // Serial.println(xPortGetCoreID());
   //Movement_Loop();

@@ -14,7 +14,6 @@ void calib1();
 void drvMotor(byte ch, int8_t sp);
 void drvMotorL(int16_t pwm);
 void drvMotorR(int16_t pwm);
-void setMode(bool inc);
 void dispBatVolt();
 void getGyro();
 void checkButtonP();
@@ -33,6 +32,7 @@ void dispAngle();
 void Movement_UpdateRotation(int x);
 void Movement_UpdateMovement(int x);
 
-void updateBatVolt();
+void Abort(String MSG);
+
 
 #endif 
