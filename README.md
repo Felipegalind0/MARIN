@@ -4,7 +4,7 @@
 ### BalaC balancing robot (IMU:MPU6886)
 
 
-## Robot Setup instructions:
+### Robot Setup instructions:
 
 1. Lay the robot flat, and power on.
 2. Wait until Gal-1 (Pitch Gyro calibration) completes.
