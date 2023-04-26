@@ -112,15 +112,9 @@ long push (>1sec) of power button: switch mode between standig and demo(circle)
 
 #include "systeminit.h"
 #include "movement.h"
-#include "wireless.h"
 #include "variables.h"
 
 TaskHandle_t Task0, Task1;
-
-// These are the 2 important global variables that are linked by variables.h
-
-int x = 0;  // Defines robot rotation rate    + = R     &   - = L
-int y = 0;  // Defines robot FWD/BACK         + = FWD   &   - = BACK
 
 
 
@@ -140,11 +134,6 @@ void RealTcode( void * pvParameters ){
 void setup() {
   // Start systems
     SysInit_Setup();
-
-    Serial.print("Setup() running on core ");
-    Serial.println(xPortGetCoreID());
-
-    Wireless_Setup();
 
     Movement_Setup();
 

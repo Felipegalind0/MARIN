@@ -33,4 +33,6 @@ void dispAngle();
 void Movement_UpdateRotation(int x);
 void Movement_UpdateMovement(int x);
 
+void updateBatVolt();
+
 #endif 

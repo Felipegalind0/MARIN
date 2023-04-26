@@ -3,6 +3,7 @@
 #include "speaker.h"
 #include "pinout.h"
 #include "LCD.h"
+#include "wireless.h"
 
 void SysInit_Setup(void){
 
@@ -18,29 +19,28 @@ void SysInit_Setup(void){
     ledcSetup(SPEAKER_CH, 5000, 8);
     //ledcAttachPin(LED, LED_CH);
     ledcAttachPin(SPEAKER, SPEAKER_CH);
+    
     digitalWrite(LED, HIGH);
-
     Serial.println("");
     Serial.println("Starting Up Systems");
-
+    // Serial.print("Setup() running on core ");
+    // Serial.println(xPortGetCoreID());
+    digitalWrite(LED, LOW);
+    
     LCD_Setup();
-
-    CORE_Message();
-
-    IMU_Message();
-
-    Felg_Message();
-
-    calib1_Message();
 
     StartUp_Sound();
 
+    digitalWrite(LED, HIGH);
+    Wireless_Setup();
     Serial.print("...");
     digitalWrite(LED, LOW);
 }
 
 
 void SysInit_Check(void){
+    digitalWrite(LED, HIGH);
     Serial.println("");
     Serial.println("StartUp Complete!");
+    digitalWrite(LED, LOW);
 }

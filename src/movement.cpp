@@ -1,42 +1,10 @@
 #include <M5StickCPlus.h>
+#include "variables.h"
 #include "movement.h"
 #include "speaker.h"
 #include "pinout.h"
 #include "LCD.h"
 #include <WebSerial.h>
-
-// Variables and stuff
-boolean serialMonitor = true;
-boolean standing      = false;
-int16_t counter       = 0;
-uint32_t time0 = 0, time1 = 0;
-int16_t counterOverPwr = 0, maxOvp = 40;
-float power, powerR, powerL, yawPower;
-float varAng, varOmg, varSpd, varDst, varIang;
-float gyroXoffset, gyroYoffset, gyroZoffset, accXoffset;
-float gyroXdata, gyroYdata, gyroZdata, accXdata, accZdata;
-float aveAccX = 0.0, aveAccZ = 0.0, aveAbsOmg = 0.0;
-float cutoff            = 0.1;                     //~=2 * pi * f (Hz)
-const float clk         = 0.01;                    // in sec,
-const uint32_t interval = (uint32_t)(clk * 1000);  // in msec
-float Kang, Komg, KIang, Kyaw, Kdst, Kspd;
-int16_t maxPwr;
-float yawAngle = 0.0;
-float moveDestination, moveTarget;
-float moveRate        = 0.0;
-const float moveStep  = 0.2 * clk;
-int16_t fbBalance     = 0;
-int16_t motorDeadband = 0;
-float mechFactR, mechFactL;
-int8_t motorRDir = 0, motorLDir = 0;
-bool spinContinuous = false;
-float spinDest, spinTarget, spinFact = 1.0;
-float spinStep  = 0.0;  // deg per 10msec
-int16_t ipowerL = 0, ipowerR = 0;
-int16_t motorLdir = 0, motorRdir = 0;  // 0:stop 1:+ -1:-
-float vBatt, voltAve             = 3.7;
-int16_t punchPwr, punchPwr2, punchDur, punchCountL = 0, punchCountR = 0;
-byte demoMode = 0;
 
 
 void Movement_UpdateRotation(int rotation) {
@@ -74,6 +42,7 @@ void Movement_Setup() {
     resetVar();
 
     // Run Calibration1
+    LCD_calib1_Message();
     calib1();
 #ifdef DEBUG
     debugSetup();
@@ -85,7 +54,7 @@ void Movement_Setup() {
 
 // Main Loop 
 void Movement_Loop() {
-
+    
     checkButtonP();
 
     #ifdef DEBUG
@@ -99,8 +68,8 @@ void Movement_Loop() {
         aveAbsOmg = aveAbsOmg * 0.9 + abs(varOmg) * 0.1;
         aveAccZ   = aveAccZ * 0.9 + accZdata * 0.1;
 
-        dispBatVolt();
-        dispAngle();
+        updateBatVolt();
+        LCD_DispAngle();
 
         // 0.9*90= 72
 //if Pointed 72 deg up 
@@ -134,7 +103,7 @@ void Movement_Loop() {
 
     counter += 1;
     if ((counter % 100) == 0) {
-        dispBatVolt();
+        LCD_DispBatVolt();
         if (serialMonitor) sendStatus();
         Serial.print("COM() running on core ");
         Serial.println(xPortGetCoreID());
@@ -160,7 +129,7 @@ void calib1() {
     calDelay(30);
     digitalWrite(LED, LOW);
     calDelay(80);
-    calib1_Message();
+    LCD_calib1_Message();
     gyroYoffset = 0.0;
     for (int i = 0; i < N_CAL1; i++) {
         readGyro();
@@ -417,34 +386,14 @@ void imuInit() {
 // -------Functions that should be run on second core-------
 
 // Show Battery Voltage On Display
-void dispBatVolt() {
-    M5.Lcd.setTextFont(4);
-    M5.Lcd.setTextSize(1);
-    M5.Lcd.setCursor(LCD_BTv_X, LCD_BTv_Y);
-    vBatt = M5.Axp.GetBatVoltage();
-    M5.Lcd.printf("%4.2fv ", vBatt);
-}
-
-void dispAngle() {
-    M5.Lcd.setTextFont(4);
-    M5.Lcd.setTextSize(1);
-    M5.Lcd.setCursor(30, 130);
-    M5.Lcd.printf("%5.0f   ", (-aveAccZ)*90.0);
-}
 
 void setMode(bool inc) {
     if (inc) demoMode = ++demoMode % 2;
 
-    M5.Lcd.setTextFont(4);
-    M5.Lcd.setTextSize(1);
+    LCD_Update_Mode();
+}
 
-    M5.Lcd.fillScreen(BLACK);
-    M5.Lcd.setCursor(30, 5);
-    
-    if (demoMode == 0)
-        M5.Lcd.print("Stand ");
-
-    else if (demoMode == 1)
-        M5.Lcd.print("Demo ");
-
+void updateBatVolt(){
+    vBatt = M5.Axp.GetBatVoltage();
+    LCD_DispBatVolt();
 }
