@@ -44,6 +44,7 @@
 #define ABORT_M_H 60
 #define ABORT_M_R 5
 
+void LCD_loop();
 
 void LCD_Setup();
 void LCD_CORE_Message();

@@ -2,6 +2,17 @@
 #include "IO.h"
 #include "variables.h"
 #include "LCD.h"
+#include "COMS.h"
+
+void LCD_loop(){
+  if ((counter % 100) == 0) {
+        updateBatVolt();
+        if (serialMonitor) sendStatus();
+        Serial.print("COM() running on core ");
+        Serial.println(xPortGetCoreID());
+  }
+  LCD_DispAngle();
+}
 
 void LCD_CORE_Message(void){
     M5.Lcd.setTextFont(2);

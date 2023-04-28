@@ -32,7 +32,9 @@ void SysInit_Setup(void){
     StartUp_Sound();
 
     digitalWrite(LED, HIGH);
+
     Wireless_Setup();
+    
     Serial.print("...");
     digitalWrite(LED, LOW);
 }

@@ -121,56 +121,114 @@ long push (>1sec) of power button: switch mode between standig and demo(circle)
 
 TaskHandle_t Task0, Task1;
 
-//Code that needs to run in real time
+SemaphoreHandle_t syncSemaphore;
+
+
+// Function that contains code that needs to run in real-time
 void RealTcode( void * pvParameters ){ 
-  //WebSerial.print("RT_loop() running on core ");
-  //WebSerial.println(xPortGetCoreID());
+  for(;;){ // Infinite loop for continuous execution
+    Movement_Loop(); // Call the movement loop for balancing and motion control
 
-  for(;;){
+    counter += 1; // Increment the counter variable by 1 each iteration
     
+    // Give the semaphore to allow background tasks to run
+    xSemaphoreGive(syncSemaphore);
     
-
-    Movement_Loop();
-    
-    counter += 1;
-
-    // if ((counter % 100) == 0) {
-    //     LCD_DispBatVolt();
-    //     if (serialMonitor) sendStatus();
-    //     Serial.print("COM() running on core ");
-    //     Serial.println(xPortGetCoreID());
-    // }
-    if ((counter % 4) == 0) {
-      CheckButtons();
-    }
-
-    do time1 = millis();
-    while (time1 - time0 < interval);
-    time0 = time1;
+    // Delay the task for a specific interval (in milliseconds) to control execution frequency
+    vTaskDelay(pdMS_TO_TICKS(interval));
   }
-
 }
+
+
+
+void BackgroundTask( void * pvParameters ){
+  for(;;){ // Infinite loop for background task
+    // Attempt to take the semaphore. Block indefinitely if it is not available.
+    if(xSemaphoreTake(syncSemaphore, portMAX_DELAY) == pdTRUE){
+      // Execute CheckButtons() if the counter is a multiple of 4
+      if ((counter % 4) == 0) CheckButtons();
+      // Execute the LCD_loop() function to handle the LCD display
+      LCD_loop();
+    }
+    // Yield control to other tasks, allowing them to execute
+    yield();
+  }
+}
+
+
+
+
+// Setup Code
+void Movement_Setup() {
+
+    //StartUp IMU
+    imuInit();
+
+    //Zero Motors
+    resetMotor();
+
+    // Reset to Default Parameters
+    resetPara();
+
+    //Zero Out Variables
+    resetVar();
+
+    // Run Calibration1
+    LCD_calib1_Message();
+    calib1();
+    LCD_calib1_complete_Message();
+#ifdef DEBUG
+    debugSetup();
+#else
+    setMode(false);
+#endif
+}
+
+
+
+
 
 
 void setup() {
   // Start systems
   //setCpuFrequencyMhz(512);
-    SysInit_Setup();
 
-    Movement_Setup();
+  // Start Physical Serial
+  Serial.begin(115200);
 
-    //create a task that will be executed in the Task1code() function, with priority 1 and executed on core 0
-    xTaskCreatePinnedToCore(
-                      RealTcode,   /* Task function. */
-                      "Task0",     /* name of task. */
-                      10000,       /* Stack size of task */
-                      NULL,        /* parameter of the task */
-                      1,           /* priority of the task */
-                      &Task1,      /* Task handle to keep track of created task */
-                      1);          /* pin task to core 0 */                  
-    vTaskDelay(500); 
+  syncSemaphore = xSemaphoreCreateBinary();
 
-    
+  // Start WebSerial, I2c, LCD, speaker, mic and other systems
+  SysInit_Setup();
+
+  // Start Movement Systems, Motors, Gyro, etc
+  Movement_Setup();
+
+  //create a task that will be executed in the Task1code() function, with priority 1 and executed on core 0
+  xTaskCreatePinnedToCore(
+                    RealTcode,   /* Task function. */
+                    "Task0",     /* name of task. */
+                    10000,       /* Stack size of task */
+                    NULL,        /* parameter of the task */
+                    1,           /* priority of the task */
+                    &Task1,      /* Task handle to keep track of created task */
+                    1);          /* pin task to core 1 */                  
+  
+  vTaskDelay(100); 
+
+  xTaskCreatePinnedToCore(
+                      BackgroundTask,   /* Task function. */
+                      "Task1",          /* name of task. */
+                      10000,            /* Stack size of task */
+                      NULL,             /* parameter of the task */
+                      -1,                /* priority of the task (lower than RealTcode) */
+                      NULL,             /* Task handle to keep track of created task */
+                      1);               /* pin task to core 1 */
+
+
+  vTaskDelay(100);
+
+  
 
   // Validate StartUp
     SysInit_Check();
@@ -179,6 +237,7 @@ void setup() {
 
 
 void loop() {
+  // Delete this task to save resources 
   vTaskDelete(NULL);
   // Serial.print("loop() running on core ");
   // Serial.println(xPortGetCoreID());

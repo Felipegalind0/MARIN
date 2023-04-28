@@ -12,7 +12,7 @@ void Movement_UpdateRotation(int rotation) {
   spinStep = 0.0;
   int s = abs(rotation);
   if (s > 0) {
-    moveRate = -(s);
+    moveRate = (s);
     spinContinuous = true;
     spinStep = (rotation > 4 ? -40.0 : 40.0) * clk;
   }
@@ -22,35 +22,9 @@ void Movement_UpdateMovement(int movement) {
   moveRate = 0.0;
 
   if (abs(movement) > 0) {
-    moveRate = (movement > 4 ? -2.0 : 2.0);
+    moveRate = (movement > 4 ? 2.0 : -2.0);
   }
 }
-
-// Setup Code
-void Movement_Setup() {
-    //StartUp IMU
-    imuInit();
-
-    //Zero Motors
-    resetMotor();
-
-    // Reset to Default Parameters
-    resetPara();
-
-    //Zero Out Variables
-    resetVar();
-
-    // Run Calibration1
-    LCD_calib1_Message();
-    calib1();
-    LCD_calib1_complete_Message();
-#ifdef DEBUG
-    debugSetup();
-#else
-    setMode(false);
-#endif
-}
-
 
 // Main Loop 
 void Movement_Loop() {
@@ -66,8 +40,7 @@ void Movement_Loop() {
         aveAbsOmg = aveAbsOmg * 0.9 + abs(varOmg) * 0.1;
         aveAccZ   = aveAccZ * 0.9 + accZdata * 0.1;
 
-        updateBatVolt();
-        LCD_DispAngle();
+        
 
         // 0.9*90= 72
         //if Pointed 72 deg up 
@@ -101,6 +74,7 @@ void Movement_Loop() {
     }
 
 }
+
 
 void report_DEG_Abort(){
     LCD_Abort_DEG_Message();
