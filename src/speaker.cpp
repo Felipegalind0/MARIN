@@ -1,5 +1,5 @@
 #include <M5StickCPlus.h>
-#include "pinout.h"
+#include "IO.h"
 
 void StartUp_Sound(){
     ledcWriteTone(SPEAKER_CH,1000);

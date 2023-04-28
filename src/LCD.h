@@ -17,8 +17,8 @@
 #define SM_Y 170
 
 
-#define CLB1_M_X 35
-#define CLB1_M_Y 100
+#define Middle_M_X 35
+#define Middle_M_Y 100
 
 
 #define CORE_SM_X 10
@@ -40,6 +40,10 @@
 #define LCD_ANGLE_H 60
 #define LCD_ANGLE_R 10 
 
+#define ABORT_M_W 125
+#define ABORT_M_H 60
+#define ABORT_M_R 5
+
 
 void LCD_Setup();
 void LCD_CORE_Message();
@@ -54,6 +58,13 @@ void LCD_DispBatVolt();
 void LCD_DispAngle();
 void LCD_Update_Mode();
 
-void LCD_Abort_Message(String MSG);
+void LCD_Abort_Message();
+
+void LCD_Abort_PWR_Message();
+void LCD_Abort_DEG_Message();
+
+void LCD_Resume_from_Abort_Message();
+
+void LCD_IMU_Message();
 
 #endif

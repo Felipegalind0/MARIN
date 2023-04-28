@@ -1,7 +1,7 @@
 #include <M5StickCPlus.h>
 #include "systeminit.h"
 #include "speaker.h"
-#include "pinout.h"
+#include "IO.h"
 #include "LCD.h"
 
 void SysInit_Setup(void){

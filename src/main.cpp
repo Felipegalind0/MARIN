@@ -102,6 +102,8 @@ Robot Setup instructions:
 
     c means command, I might setup other letters to do other stuff
 
+     -11 < (Both X & Y) < 11
+        AKA -10 to 10 
 
 
 short push of power button: Gyro calibration
@@ -111,31 +113,13 @@ long push (>1sec) of power button: switch mode between standig and demo(circle)
 */
 
 #include "systeminit.h"
-#include "speaker.h"
+#include "IO.h"
 #include "movement.h"
 #include "variables.h"
 #include "LCD.h"
 
+
 TaskHandle_t Task0, Task1;
-
-
-//Check if button has been pressed
-void CheckButtonP() {
-    byte pbtn = M5.Axp.GetBtnPress();
-    if (pbtn == 2){
-
-        Shutdown_Sound();
-
-        esp_restart();
-
-    }
-        
-        
-    else if (pbtn == 1){
-        setMode(true);  // long push
-    }
-
-}
 
 //Code that needs to run in real time
 void RealTcode( void * pvParameters ){ 
@@ -144,17 +128,20 @@ void RealTcode( void * pvParameters ){
 
   for(;;){
     
-    CheckButtonP();
+    
 
     Movement_Loop();
     
     counter += 1;
 
-    if ((counter % 100) == 0) {
-        LCD_DispBatVolt();
-        if (serialMonitor) sendStatus();
-        Serial.print("COM() running on core ");
-        Serial.println(xPortGetCoreID());
+    // if ((counter % 100) == 0) {
+    //     LCD_DispBatVolt();
+    //     if (serialMonitor) sendStatus();
+    //     Serial.print("COM() running on core ");
+    //     Serial.println(xPortGetCoreID());
+    // }
+    if ((counter % 4) == 0) {
+      CheckButtons();
     }
 
     do time1 = millis();

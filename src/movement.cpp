@@ -1,7 +1,7 @@
 #include <M5StickCPlus.h>
 #include "variables.h"
 #include "movement.h"
-#include "pinout.h"
+#include "IO.h"
 #include "LCD.h"
 #include <WebSerial.h>
 
@@ -61,11 +61,7 @@ void Movement_Loop() {
 
     getGyro();
 
-    if (hasFallen){
-        ;;
-    }
-
-    else if (!standing) { // If Robot is not Standing
+    if (!standing) { // If Robot is not Standing
 
         aveAbsOmg = aveAbsOmg * 0.9 + abs(varOmg) * 0.1;
         aveAccZ   = aveAccZ * 0.9 + accZdata * 0.1;
@@ -89,11 +85,11 @@ void Movement_Loop() {
 
     else { // Check if Robot has fallen and disable
 
-        if (abs(varAng) > 45.0) {
+        if (abs(varAng) > maxAngle) {
             Abort("Max DEG");
         } 
 
-        if (counterOverPwr > maxOvp) { 
+        else if (counterOverPwr > maxOvp) { 
             Abort("Max PWR");
         } 
 
@@ -106,28 +102,59 @@ void Movement_Loop() {
 
 }
 
+void report_DEG_Abort(){
+    LCD_Abort_DEG_Message();
+}
+
+void report_PWR_Abort(){
+    LCD_Abort_PWR_Message();
+}
+
 void Abort(String MSG){
+
+    LCD_Abort_Message();
+
+    if(MSG == "Max DEG") report_DEG_Abort();
+
+    if(MSG == "Max PWR") report_PWR_Abort();
+
+    resetMotor();
+
     WebSerial.print(MSG);
 
     standing = false;
     hasFallen = true;
 
-    resetMotor();
+    while(!abortWasHandled){
+        vTaskDelay(500);
+        ledcWriteTone(SPEAKER_CH,911);
+        digitalWrite(LED, HIGH);
+        CheckButtons();
+        vTaskDelay(50);
+        digitalWrite(LED, LOW);
+        ledcWriteTone(SPEAKER_CH,0);
 
-    resetVar();
+        if (Abtn) {
+            abortWasHandled = true;
+            break;
+        };
+    }
 
-    standing = false;
+    LCD_Resume_from_Abort_Message();
+    vTaskDelay(1000);
 
-    setMode(false);
 
-    LCD_Abort_Message(MSG);
+    Movement_Setup();
+    
 }
 
+
+    
 
 // First Calibration
 void calib1() {
     calDelay(30);
-    digitalWrite(LED, LOW);
+    digitalWrite(LED, HIGH);
     calDelay(80);
     LCD_calib1_Message();
     gyroYoffset = 0.0;
@@ -138,14 +165,14 @@ void calib1() {
     }
     gyroYoffset /= (float)N_CAL1;
     M5.Lcd.fillScreen(BLACK);
-    digitalWrite(LED, HIGH);
+    digitalWrite(LED, LOW);
 }
 
 // Second Calibration
 void calib2() {
     resetVar();
     resetMotor();
-    digitalWrite(LED, LOW);
+    digitalWrite(LED, HIGH);
     calDelay(80);
     M5.Lcd.setCursor(30, LCDV_MID);
     M5.Lcd.println(" Cal-2  ");
@@ -160,7 +187,7 @@ void calib2() {
     accXoffset /= (float)N_CAL2;
     gyroZoffset /= (float)N_CAL2;
     M5.Lcd.fillScreen(BLACK);
-    digitalWrite(LED, HIGH);
+    digitalWrite(LED, LOW);
 }
 
 
@@ -178,22 +205,7 @@ void startDemo() {
     spinStep       = -40.0 * clk;
 }
 
-void resetPara() {
-    Kang          = 37.0;
-    Komg          = 0.84;
-    KIang         = 800.0;
-    Kyaw          = 4.0;
-    Kdst          = 85.0;
-    Kspd          = 2.7;
-    mechFactL     = 0.45;
-    mechFactR     = 0.45;
-    punchPwr      = 20;
-    punchDur      = 1;
-    fbBalance     = -3;
-    motorDeadband = 10;
-    maxPwr        = 120;
-    punchPwr2     = max(punchPwr, motorDeadband);
-}
+
 
 void getGyro() {
     readGyro();
@@ -297,21 +309,6 @@ void drive() {
         drvMotorR(0);
         motorRdir = 0;
     }
-}
-
-void drvMotorL(int16_t pwm) {
-    drvMotor(0, (int8_t)constrain(pwm, -127, 127));
-}
-
-void drvMotorR(int16_t pwm) {
-    drvMotor(1, (int8_t)constrain(-pwm, -127, 127));
-}
-
-void drvMotor(byte ch, int8_t sp) {
-    Wire.beginTransmission(0x38);
-    Wire.write(ch);
-    Wire.write(sp);
-    Wire.endTransmission();
 }
 
 void resetMotor() {

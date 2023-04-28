@@ -1,5 +1,5 @@
 #include <M5StickCPlus.h>
-#include "pinout.h"
+#include "IO.h"
 #include "variables.h"
 #include "LCD.h"
 
@@ -42,13 +42,13 @@ void LCD_calib1_Message(void){
     M5.Lcd.setTextSize(1);
     M5.Lcd.setTextColor(RED);
 
-    M5.Lcd.setCursor(CLB1_M_X, CLB1_M_Y);
+    M5.Lcd.setCursor(Middle_M_X, Middle_M_Y);
     M5.Lcd.print("Executing");
 
-    M5.Lcd.setCursor(CLB1_M_X, CLB1_M_Y + 15);
+    M5.Lcd.setCursor(Middle_M_X, Middle_M_Y + 15);
     M5.Lcd.print("Stationary");
 
-    M5.Lcd.setCursor(CLB1_M_X, CLB1_M_Y + 30);
+    M5.Lcd.setCursor(Middle_M_X, Middle_M_Y + 30);
     M5.Lcd.print("Calibration");
 
     M5.Lcd.setTextColor(WHITE);
@@ -59,14 +59,14 @@ void LCD_calib1_complete_Message(void){
     M5.Lcd.setTextSize(1);
     M5.Lcd.setTextColor(RED);
 
-    M5.Lcd.setCursor(CLB1_M_X, CLB1_M_Y);
+    M5.Lcd.setCursor(Middle_M_X, Middle_M_Y);
     M5.Lcd.print("Stationary");
 
 
-    M5.Lcd.setCursor(CLB1_M_X, CLB1_M_Y + 15);
+    M5.Lcd.setCursor(Middle_M_X, Middle_M_Y + 15);
     M5.Lcd.print("Calibration");
 
-    M5.Lcd.setCursor(CLB1_M_X, CLB1_M_Y + 30);
+    M5.Lcd.setCursor(Middle_M_X, Middle_M_Y + 30);
     M5.Lcd.print("Complete");
 
     M5.Lcd.setTextColor(WHITE);
@@ -77,13 +77,13 @@ void LCD_calib2_Message(void){
     M5.Lcd.setTextSize(1);
     M5.Lcd.setTextColor(RED);
 
-    M5.Lcd.setCursor(CLB1_M_X, CLB1_M_Y);
+    M5.Lcd.setCursor(Middle_M_X, Middle_M_Y);
     M5.Lcd.print("Executing");
 
-    M5.Lcd.setCursor(CLB1_M_X, CLB1_M_Y + 15);
+    M5.Lcd.setCursor(Middle_M_X, Middle_M_Y + 15);
     M5.Lcd.print("Balance");
 
-    M5.Lcd.setCursor(CLB1_M_X, CLB1_M_Y + 30);
+    M5.Lcd.setCursor(Middle_M_X, Middle_M_Y + 30);
     M5.Lcd.print("Calibration");
 
     M5.Lcd.setTextColor(WHITE);
@@ -146,19 +146,48 @@ void LCD_Update_Mode(){
 
 }
 
-void LCD_Abort_Message(String MSG){
+void LCD_Abort_Message(){
     M5.Lcd.setTextFont(2);
     M5.Lcd.setTextSize(1);
-    M5.Lcd.setTextColor(RED);
+    M5.Lcd.setTextColor(BLACK);
 
-    M5.Lcd.setCursor(CLB1_M_X, CLB1_M_Y);
-    M5.Lcd.print("Aborting..");
+    M5.Lcd.fillRoundRect(Middle_M_X-30, Middle_M_Y-3,
+     ABORT_M_W, ABORT_M_H, ABORT_M_R, RED);
 
-    M5.Lcd.setCursor(CLB1_M_X, CLB1_M_Y + 15);
+    M5.Lcd.setCursor(Middle_M_X-25, Middle_M_Y);
+    M5.Lcd.print("Robot Deactivated");
+
+    M5.Lcd.setCursor(Middle_M_X-25, Middle_M_Y + 15);
     M5.Lcd.print("Reason:");
 
-    M5.Lcd.setCursor(CLB1_M_X, CLB1_M_Y + 30);
-    M5.Lcd.print(MSG);
+}
+
+void LCD_Abort_DEG_Message(){
+
+    M5.Lcd.setCursor(Middle_M_X-25, Middle_M_Y + 30);
+    M5.Lcd.print("Max DEG:");
+    M5.Lcd.println(maxAngle);
+
+    M5.Lcd.setCursor(Middle_M_X+25, Middle_M_Y + 15);
+    M5.Lcd.print("DEG:");
+    M5.Lcd.print(varAng);
 
     M5.Lcd.setTextColor(WHITE);
+}
+
+void LCD_Abort_PWR_Message(){
+
+    M5.Lcd.setCursor(Middle_M_X-25, Middle_M_Y + 30);
+    M5.Lcd.print("Max PWR:");
+    M5.Lcd.println(maxOvp);
+
+    M5.Lcd.setCursor(Middle_M_X+25, Middle_M_Y + 15);
+    M5.Lcd.print("PWR:");
+    M5.Lcd.print(counterOverPwr);
+
+    M5.Lcd.setTextColor(WHITE);
+}
+
+void LCD_Resume_from_Abort_Message(){
+    LCD_IMU_Message();
 }

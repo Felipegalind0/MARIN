@@ -8,8 +8,6 @@ void Movement_Loop();
 
 void imuInit();
 void resetMotor();
-void resetPara();
-void resetVar();
 void calib1();
 void drvMotor(byte ch, int8_t sp);
 void drvMotorL(int16_t pwm);
@@ -31,6 +29,10 @@ void dispAngle();
 
 void Movement_UpdateRotation(int x);
 void Movement_UpdateMovement(int x);
+
+void report_DEG_Abort();
+
+void report_PWR_Abort();
 
 void Abort(String MSG);
 

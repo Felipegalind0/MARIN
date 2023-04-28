@@ -9,12 +9,13 @@ int y = 0;  // Defines robot FWD/BACK         + = FWD   &   - = BACK
 float vBatt, voltAve             = 3.7;
 
 // Variables and stuff
-boolean serialMonitor = true;
-boolean standing      = false;
-boolean hasFallen     = false;
+boolean serialMonitor   = true;
+boolean standing        = false;
+boolean hasFallen       = false;
+boolean abortWasHandled = false;
 int16_t counter       = 0;
 uint32_t time0 = 0, time1 = 0;
-int16_t counterOverPwr = 0, maxOvp = 40;
+int16_t counterOverPwr = 0, maxOvp = 80, maxAngle = 35;
 float power, powerR, powerL, yawPower;
 float varAng, varOmg, varSpd, varDst, varIang;
 float gyroXoffset, gyroYoffset, gyroZoffset, accXoffset;
@@ -40,9 +41,14 @@ int16_t ipowerL = 0, ipowerR = 0;
 int16_t motorLdir = 0, motorRdir = 0;  // 0:stop 1:+ -1:-
 
 int16_t punchPwr, punchPwr2, punchDur, punchCountL = 0, punchCountR = 0;
+
 byte demoMode = 0;
 
+byte Abtn = 0;
+byte Bbtn = 0;
+
 void resetVar() {
+    abortWasHandled = false;
     power          = 0.0;
     moveTarget     = 0.0;
     moveRate       = 0.0;
@@ -56,6 +62,23 @@ void resetVar() {
     varDst         = 0.0;
     varSpd         = 0.0;
     varIang        = 0.0;
+}
+
+void resetPara() {
+    Kang          = 37.0;
+    Komg          = 0.84;
+    KIang         = 800.0;
+    Kyaw          = 4.0;
+    Kdst          = 85.0;
+    Kspd          = 2.7;
+    mechFactL     = 0.45;
+    mechFactR     = 0.45;
+    punchPwr      = 20;
+    punchDur      = 1;
+    fbBalance     = -3;
+    motorDeadband = 10;
+    maxPwr        = 120;
+    punchPwr2     = max(punchPwr, motorDeadband);
 }
 
 // -------Functions that should be run on second core-------
