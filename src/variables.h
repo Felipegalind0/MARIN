@@ -1,6 +1,9 @@
 #ifndef _VARIABLES_H_
 #define _VARIABLES_H_
 
+#define btnCounter 10
+#define logCounter 100
+
 #include <M5StickCPlus.h>
 
 extern int x, y;
@@ -16,7 +19,7 @@ extern int16_t counterOverPwr, maxOvp, maxAngle;
 extern float power, powerR, powerL, yawPower;
 extern float varAng, varOmg, varSpd, varDst, varIang;
 extern float gyroXoffset, gyroYoffset, gyroZoffset, accXoffset;
-extern float gyroXdata, gyroYdata, gyroZdata, accXdata, accZdata;
+extern float gyroXdata, gyroYdata, gyroZdata, accXdata, accYdata, accZdata;
 extern float aveAccX, aveAccZ, aveAbsOmg;
 extern float cutoff;
 extern const float clk;

@@ -15,11 +15,11 @@ boolean hasFallen       = false;
 boolean abortWasHandled = false;
 int16_t counter       = 0;
 uint32_t time0 = 0, time1 = 0;
-int16_t counterOverPwr = 0, maxOvp = 80, maxAngle = 35;
+int16_t counterOverPwr = 0, maxOvp = 80, maxAngle = 30;
 float power, powerR, powerL, yawPower;
 float varAng, varOmg, varSpd, varDst, varIang;
 float gyroXoffset, gyroYoffset, gyroZoffset, accXoffset;
-float gyroXdata, gyroYdata, gyroZdata, accXdata, accZdata;
+float gyroXdata, gyroYdata, gyroZdata, accXdata, accYdata, accZdata;
 float aveAccX = 0.0, aveAccZ = 0.0, aveAbsOmg = 0.0;
 float cutoff            = 0.1;                     //~=2 * pi * f (Hz)
 const float clk         = 0.01;                    // in sec,

@@ -6,25 +6,34 @@
 #include <WebSerial.h>
 
 
+// Update the rotation rate and direction based on the input rotation value
 void Movement_UpdateRotation(int rotation) {
   moveRate = 0.0;
   spinContinuous = false;
   spinStep = 0.0;
-  int s = abs(rotation);
-  if (s > 0) {
-    moveRate = (s);
-    spinContinuous = true;
-    spinStep = (rotation > 4 ? -40.0 : 40.0) * clk;
-  }
+
+  // Normalize the rotation value to be within the range of -1.0 and 1.0
+  float normalizedRotation = rotation / 10.0;
+
+  // Set the movement rate based on the normalized rotation value
+  moveRate = abs(normalizedRotation);
+
+  // Set the spinContinuous flag to true if the rotation value is non-zero
+  spinContinuous = rotation != 0;
+
+  // Set the spinStep based on the normalized rotation value and the clock value
+  spinStep = -40.0 * normalizedRotation * clk;
 }
 
+// Update the movement rate and direction based on the input movement value
 void Movement_UpdateMovement(int movement) {
-  moveRate = 0.0;
+  // Normalize the movement value to be within the range of -2.0 and 2.0
+  float normalizedMovement = movement / 5.0;
 
-  if (abs(movement) > 0) {
-    moveRate = (movement > 4 ? 2.0 : -2.0);
-  }
+  // Set the movement rate based on the normalized movement value
+  moveRate = normalizedMovement;
 }
+
 
 // Main Loop 
 void Movement_Loop() {
@@ -190,15 +199,28 @@ void getGyro() {
 }
 
 void readGyro() {
-    float gX, gY, gZ, aX, aY, aZ;
-    M5.Imu.getGyroData(&gX, &gY, &gZ);
-    M5.Imu.getAccelData(&aX, &aY, &aZ);
-    gyroYdata = gX;
-    gyroZdata = -gY;
-    gyroXdata = -gZ;
-    accXdata  = aZ;
-    accZdata  = aY;
+  // Declare variables for gyro and accelerometer data
+  float gX, gY, gZ, aX, aY, aZ;
+
+  // Get the gyro data for the X, Y, and Z axes
+  M5.Imu.getGyroData(&gX, &gY, &gZ);
+
+  // Get the accelerometer data for the X, Y, and Z axes
+  M5.Imu.getAccelData(&aX, &aY, &aZ);
+
+  // Assign the gyro data to the corresponding global variables
+  // (Note the sign changes to match the robot's coordinate system)
+  gyroYdata = gX;
+  gyroZdata = -gY;
+  gyroXdata = -gZ;
+
+  // Assign the accelerometer data to the corresponding global variables
+  // (Note the change in variable usage for aX)
+  accXdata = aZ;
+  accYdata = aX; // New assignment to use the previously unused variable aX
+  accZdata = aY;
 }
+
 
 void drive() {
 #ifdef DEBUG

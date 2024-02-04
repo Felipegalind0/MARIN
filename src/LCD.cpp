@@ -5,9 +5,8 @@
 #include "COMS.h"
 
 void LCD_loop(){
-  if ((counter % 100) == 0) {
+  if ((counter % 1000) == 0) {
         updateBatVolt();
-        if (serialMonitor) sendStatus();
         Serial.print("COM() running on core ");
         Serial.println(xPortGetCoreID());
   }

@@ -91,7 +91,7 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
 
 void Wireless_Setup(){
 
-    WiFi.mode(WIFI_AP_STA);
+    WiFi.mode(WIFI_AP_STA); 
     WiFi.begin(ssid, password);
     if (WiFi.waitForConnectResult() != WL_CONNECTED) {
         Serial.printf("WiFi Failed!\n");

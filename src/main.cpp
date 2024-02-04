@@ -117,6 +117,7 @@ long push (>1sec) of power button: switch mode between standig and demo(circle)
 #include "movement.h"
 #include "variables.h"
 #include "LCD.h"
+#include "COMS.h"
 
 
 TaskHandle_t Task0, Task1;
@@ -139,23 +140,32 @@ void RealTcode( void * pvParameters ){
   }
 }
 
+void BackgroundTask( void * pvParameters ) {
+  for (;;) {  // Infinite loop for background task
+    // Wait for the syncSemaphore to be given by the RealTcode task
+    if (xSemaphoreTake(syncSemaphore, portMAX_DELAY) == pdTRUE) {
 
+      // 
+      if ((counter % btnCounter) == 0) {
+        CheckButtons();
+      }
 
-void BackgroundTask( void * pvParameters ){
-  for(;;){ // Infinite loop for background task
-    // Attempt to take the semaphore. Block indefinitely if it is not available.
-    if(xSemaphoreTake(syncSemaphore, portMAX_DELAY) == pdTRUE){
-      // Execute CheckButtons() if the counter is a multiple of 4
-      if ((counter % 4) == 0) CheckButtons();
-      // Execute the LCD_loop() function to handle the LCD display
+      // 
+      if (counter % logCounter == 0) {
+        if (serialMonitor) {
+          sendStatus();
+          logData();
+        }
+      }
+
+      // Update the LCD display
       LCD_loop();
     }
-    // Yield control to other tasks, allowing them to execute
+
+    // Yield the processor to other tasks
     yield();
   }
 }
-
-
 
 
 // Setup Code
@@ -190,21 +200,24 @@ void Movement_Setup() {
 
 
 void setup() {
-  // Start systems
-  //setCpuFrequencyMhz(512);
+  // Initialize various systems
 
-  // Start Physical Serial
-  Serial.begin(115200);
+  // Uncomment the line below to set the CPU frequency (if needed)
+  // setCpuFrequencyMhz(512);
 
+  serial_Init();
+
+  // Create a binary semaphore for task synchronization
   syncSemaphore = xSemaphoreCreateBinary();
 
-  // Start WebSerial, I2c, LCD, speaker, mic and other systems
+  // Initialize web serial, I2C, LCD, speaker, microphone, and other systems
   SysInit_Setup();
 
-  // Start Movement Systems, Motors, Gyro, etc
+  // Initialize movement systems, motors, gyro, etc.
   Movement_Setup();
 
-  //create a task that will be executed in the Task1code() function, with priority 1 and executed on core 0
+  // Create a task for real-time code execution
+  // Task1code() function, with priority 1, executed on core 1
   xTaskCreatePinnedToCore(
                     RealTcode,   /* Task function. */
                     "Task0",     /* name of task. */
@@ -212,28 +225,29 @@ void setup() {
                     NULL,        /* parameter of the task */
                     1,           /* priority of the task */
                     &Task1,      /* Task handle to keep track of created task */
-                    1);          /* pin task to core 1 */                  
-  
+                    1);          /* pin task to core 1 */
+
+  // Add a delay to give the task some time to start
   vTaskDelay(100); 
 
+  // Create a background task for less time-sensitive operations
+  // Executed on core 0 with lower priority than the real-time task
   xTaskCreatePinnedToCore(
                       BackgroundTask,   /* Task function. */
                       "Task1",          /* name of task. */
                       10000,            /* Stack size of task */
                       NULL,             /* parameter of the task */
-                      -1,                /* priority of the task (lower than RealTcode) */
+                      -1,               /* priority of the task (lower than RealTcode) */
                       NULL,             /* Task handle to keep track of created task */
-                      1);               /* pin task to core 1 */
+                      0);               /* pin task to core 0 */
 
-
+  // Add another delay to give the background task some time to start
   vTaskDelay(100);
 
-  
-
-  // Validate StartUp
-    SysInit_Check();
-  
+  // Validate that the system started up correctly
+  SysInit_Check();
 }
+
 
 
 void loop() {
