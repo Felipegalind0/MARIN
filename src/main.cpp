@@ -2,9 +2,9 @@
     BalaC balancing robot with IMU:MPU6886 
 
 By Felipe Galindo
-
-
-
+*/
+# define SOFTWARE_VERSION "3.0.0"
+/*
 This code is based of the example BalaC with the following changes:
 
   - Improved Controller
