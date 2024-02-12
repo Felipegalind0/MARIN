@@ -1,4 +1,4 @@
-#include <WebSerial.h>
+//#include <WebSerial.h>
 #include "variables.h"
 #include "speaker.h"
 #include "IO.h"
@@ -26,11 +26,11 @@ void CheckButtons() {
     }
 
     if (Abtn){
-      WebSerial.println("A Button Pressed");
+      Serial.println("A Button Pressed");
     }
 
     if (Bbtn){
-      WebSerial.println("B Button Pressed");
+      Serial.println("B Button Pressed");
     }
 
 }

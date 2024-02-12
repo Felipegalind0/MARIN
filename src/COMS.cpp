@@ -1,5 +1,5 @@
 #include "variables.h"
-#include <WebSerial.h>
+//#include <WebSerial.h>
 #include <HardwareSerial.h>
 
 //HardwareSerial Serial2(2); // Use hardware serial 2 for the second connection
@@ -18,17 +18,17 @@ void serial_Init() {
 
 // void logData() {
 //   yield();
-//   WebSerial.print(gyroXdata);
-//   WebSerial.print(",");
-//   WebSerial.print(gyroYdata);
-//   WebSerial.print(",");
-//   WebSerial.print(gyroZdata);
-//   WebSerial.print(",");
-//   WebSerial.print(accXdata);
-//   WebSerial.print(",");
-//   WebSerial.print(accYdata);
-//   WebSerial.print(",");
-//   WebSerial.println(accZdata);
+//   Serial.print(gyroXdata);
+//   Serial.print(",");
+//   Serial.print(gyroYdata);
+//   Serial.print(",");
+//   Serial.print(gyroZdata);
+//   Serial.print(",");
+//   Serial.print(accXdata);
+//   Serial.print(",");
+//   Serial.print(accYdata);
+//   Serial.print(",");
+//   Serial.println(accZdata);
 //   yield();
 // }
 
@@ -52,15 +52,15 @@ void logData() {
 
 void sendStatus() {
     yield();
-    WebSerial.print(" s");
-    WebSerial.println(standing);
-    WebSerial.print(" p");
-    WebSerial.println(power);
-    WebSerial.print(" a");
-    WebSerial.println(varAng);
+    Serial.print(" s");
+    Serial.println(standing);
+    Serial.print(" p");
+    Serial.println(power);
+    Serial.print(" a");
+    Serial.println(varAng);
     yield();
 
-    WebSerial.print(String(millis() - time0)+'\n');
+    Serial.print(String(millis() - time0)+'\n');
 }
 
 

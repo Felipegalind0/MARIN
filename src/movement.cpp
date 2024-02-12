@@ -3,7 +3,7 @@
 #include "movement.h"
 #include "IO.h"
 #include "LCD.h"
-#include <WebSerial.h>
+//#include <WebSerial.h>
 
 
 // Update the rotation rate and direction based on the input rotation value
@@ -103,7 +103,7 @@ void Abort(String MSG){
 
     resetMotor();
 
-    WebSerial.print(MSG);
+    Serial.print(MSG);
 
     standing = false;
     hasFallen = true;
@@ -326,7 +326,7 @@ void imuInit() {
     M5.Imu.SetGyroFsr(
     M5.Imu.GFS_250DPS);  // 250DPS 500DPS 1000DPS 2000DPS
     M5.Imu.SetAccelFsr(M5.Imu.AFS_4G);  // 2G 4G 8G 16G
-    if (serialMonitor) WebSerial.println("MPU6886 found");
+    if (serialMonitor) Serial.println("MPU6886 found");
 }
 
 

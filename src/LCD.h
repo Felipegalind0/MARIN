@@ -46,7 +46,7 @@
 
 void LCD_loop();
 
-void LCD_Setup();
+void LCD_UI_Setup();
 void LCD_CORE_Message();
 void LCD_IMU_Message();
 void LCD_Felg_Message();

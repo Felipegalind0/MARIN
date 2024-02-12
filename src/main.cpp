@@ -140,30 +140,76 @@ void RealTcode( void * pvParameters ){
   }
 }
 
-void BackgroundTask( void * pvParameters ) {
-  for (;;) {  // Infinite loop for background task
-    // Wait for the syncSemaphore to be given by the RealTcode task
-    if (xSemaphoreTake(syncSemaphore, portMAX_DELAY) == pdTRUE) {
 
-      // 
-      if ((counter % btnCounter) == 0) {
-        CheckButtons();
-      }
+void exec_BackgroundTask() {
+  // Wait for the syncSemaphore to be given by the RealTcode task
+  if (xSemaphoreTake(syncSemaphore, portMAX_DELAY) == pdTRUE) {
 
-      // 
-      if (counter % logCounter == 0) {
-        if (serialMonitor) {
-          sendStatus();
-          logData();
-        }
-      }
-
-      // Update the LCD display
-      LCD_loop();
+    // 
+    if ((counter % btnCounter) == 0) {
+      CheckButtons();
     }
 
-    // Yield the processor to other tasks
-    yield();
+    // 
+    if (counter % logCounter == 0) {
+      if (serialMonitor) {
+        sendStatus();
+        logData();
+      }
+    }
+
+    // Update the LCD display
+    LCD_loop();
+  }
+}
+
+
+
+
+void BackgroundTask( void * pvParameters ) {
+  for (;;) {  // Infinite loop for background task
+
+
+    BackgroundTask_execution_time_start = esp_timer_get_time(); // Record the start time of the loop
+
+    BackgroundTask_no_execution_time = BackgroundTask_execution_time_start - BackgroundTask_execution_time_end; // Calculate the time not spent executing the loop
+
+    yield(); // Yield the processor to other tasks
+    // Wait for the syncSemaphore to be given by the RealTcode task
+
+    exec_BackgroundTask(); // Execute the background task
+
+    // Record the end time of the loop
+    BackgroundTask_execution_time_end = esp_timer_get_time();
+
+    // Calculate the time taken to execute the loop
+    BackgroundTask_execution_time = BackgroundTask_execution_time_end - BackgroundTask_execution_time_start;
+
+    // Calculate the total execution time and CPU load
+    BackgroundTask_total_execution_time = BackgroundTask_execution_time + BackgroundTask_no_execution_time;
+
+    if (BackgroundTask_total_execution_time != 0 && BackgroundTask_execution_time != 0) {
+
+      // Calculate the CPU load
+      BackgroundTask_CPU_load = (BackgroundTask_execution_time * 100/ BackgroundTask_total_execution_time);
+
+      // Serial.print("@BackgroundTask_no_execution_time_start: ");
+      // Serial.print(BackgroundTask_no_execution_time_start);
+      // Serial.print(" @BackgroundTask_no_execution_time_end: ");
+      // Serial.print(BackgroundTask_no_execution_time_end);
+
+      // Serial.print("@BackgroundTask_no_execution_time: "); 
+      // Serial.print(BackgroundTask_no_execution_time);
+      // Serial.print(" @BackgroundTask_total_execution_time: ");
+      // Serial.print(BackgroundTask_total_execution_time);
+      // Serial.print(" @BackgroundTask_execution_time: ");
+      // Serial.print(BackgroundTask_execution_time);
+      // Serial.print(" @BackgroundTask: CPU load = ");
+      // Serial.println(BackgroundTask_CPU_load);
+
+    }
+
+    vTaskDelay(pdMS_TO_TICKS(interval)); // Delay the task for a specific interval (in milliseconds) to control execution frequency  
   }
 }
 
@@ -197,7 +243,8 @@ void Movement_Setup() {
 
 
 
-
+#define RealTcore 1
+#define BackgroundCore 0
 
 void setup() {
   // Initialize various systems
@@ -206,6 +253,8 @@ void setup() {
   // setCpuFrequencyMhz(512);
 
   serial_Init();
+
+  Serial.println("\n\nCPU" + String(xPortGetCoreID()) + " setup()\n");
 
   // Create a binary semaphore for task synchronization
   syncSemaphore = xSemaphoreCreateBinary();
@@ -216,30 +265,60 @@ void setup() {
   // Initialize movement systems, motors, gyro, etc.
   Movement_Setup();
 
-  // Create a task for real-time code execution
-  // Task1code() function, with priority 1, executed on core 1
+
+
+  // // Create a task for real-time code execution
+  // // Task1code() function, with priority 1, executed on core 1
+  // xTaskCreatePinnedToCore(
+  //                   RealTcode,   /* Task function. */
+  //                   "Task0",     /* name of task. */
+  //                   10000,       /* Stack size of task */
+  //                   NULL,        /* parameter of the task */
+  //                   INT_MAX,           /* priority of the task */
+  //                   &Task1,      /* Task handle to keep track of created task */
+  //                   1);          /* pin task to core 1 */
+
+  // // Add a delay to give the task some time to start
+  // vTaskDelay(100); 
+
+  // // Create a background task for less time-sensitive operations
+  // // Executed on core 0 with lower priority than the real-time task
+  // xTaskCreatePinnedToCore(
+  //                     BackgroundTask,   /* Task function. */
+  //                     "Task1",          /* name of task. */
+  //                     10000,            /* Stack size of task */
+  //                     NULL,             /* parameter of the task */
+  //                     -1,               /* priority of the task (lower than RealTcode) */
+  //                     NULL,             /* Task handle to keep track of created task */
+  //                     0);               /* pin task to core 0 */
+
+
+  // Create a binary semaphore for task synchronization
+  syncSemaphore = xSemaphoreCreateBinary();
+
+  // Startup the Real Time Excecution Task
   xTaskCreatePinnedToCore(
                     RealTcode,   /* Task function. */
-                    "Task0",     /* name of task. */
+                    "RealTtask", /* name of task. */
                     10000,       /* Stack size of task */
                     NULL,        /* parameter of the task */
                     1,           /* priority of the task */
                     &Task1,      /* Task handle to keep track of created task */
-                    1);          /* pin task to core 1 */
+                    RealTcore);  /* pin task to core 1 */
 
   // Add a delay to give the task some time to start
   vTaskDelay(100); 
 
-  // Create a background task for less time-sensitive operations
-  // Executed on core 0 with lower priority than the real-time task
+  // Startup the Background Task
   xTaskCreatePinnedToCore(
                       BackgroundTask,   /* Task function. */
-                      "Task1",          /* name of task. */
+                      "BackgroundTask", /* name of task. */
                       10000,            /* Stack size of task */
                       NULL,             /* parameter of the task */
                       -1,               /* priority of the task (lower than RealTcode) */
                       NULL,             /* Task handle to keep track of created task */
-                      0);               /* pin task to core 0 */
+                      BackgroundCore);  /* pin task to core 0 */
+
 
   // Add another delay to give the background task some time to start
   vTaskDelay(100);

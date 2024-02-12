@@ -8,6 +8,64 @@ int y = 0;  // Defines robot FWD/BACK         + = FWD   &   - = BACK
 
 float vBatt, voltAve             = 3.7;
 
+
+
+
+//-----------------Time Variables-----------------
+int64_t RealTcode_start_time = 0, RealTcode_end_time = 0, RealTcode_execution_time = 0, RealTcode_no_execution_time = 0, RealTcode_total_execution_time = 0;
+int64_t BackgroundTask_execution_time_start = 0, BackgroundTask_execution_time_end = 0, BackgroundTask_execution_time = 0, BackgroundTask_total_execution_time = 0, BackgroundTask_no_execution_time = 0;
+
+double RealTcode_CPU_load = 0.0, BackgroundTask_CPU_load = 0.0;
+
+
+
+//-----------------Joystick Variables-----------------
+// uint32_t Joyc_X_min = 500, Joyc_X_center = 2000, Joyc_X_max = 3500, Joyc_Y_min = 500, Joyc_Y_center = 2000, Joyc_Y_max = 3500, JoyC_X_raw = 2000, JoyC_Y_raw = 2000, JoyC_X_raw_prev = 2000, JoyC_Y_raw_prev = 2000;
+
+// byte JoyC_X_deadzone = 200, JoyC_Y_deadzone = 200;
+
+byte JoyC_X = 50, JoyC_Y = 50;
+
+float JoyC_r = 0;
+
+float JoyC_Phi = 0;
+
+byte JoyC_X_Cycles_In_Deadzone = 0, JoyC_Y_Cycles_In_Deadzone = 0;
+
+
+boolean JoyC_In_X_DeadZone = true;
+boolean JoyC_In_y_DeadZone = true;
+
+int JoyC_X_left_right = 0;
+int JoyC_Y_up_down    = 0;
+
+boolean JoyC_btn = false;
+
+boolean JoyC_left = false;
+boolean JoyC_right = false;
+boolean JoyC_up = false;
+boolean JoyC_down = false;
+
+boolean JoyC_needs_to_return_to_center = false;
+
+boolean JoyC_Xinput = false;
+
+
+//-----------------LCD Variables-----------------
+uint8_t lcd_brightness = 12;
+
+
+
+
+
+
+
+
+
+
+
+
+
 // Variables and stuff
 boolean serialMonitor   = true;
 boolean standing        = false;
