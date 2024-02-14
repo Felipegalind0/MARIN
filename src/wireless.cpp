@@ -44,6 +44,24 @@ void recvMsg(uint8_t *data, size_t len){
 }
 
 
+void cartesianToPolar() {
+    // Normalize x and y to have 0,0 at the center
+    float x_normalized = JoyC_X - 50.0;
+    float y_normalized = JoyC_Y - 50.0;
+
+    // Calculate the radius
+    JoyC_r = sqrt(x_normalized * x_normalized + y_normalized * y_normalized);
+
+    // Calculate the angle in radians
+    JoyC_Phi = atan2(y_normalized, x_normalized);
+
+    // for angle in degrees, uncomment the following line
+    JoyC_Phi = JoyC_Phi * (180.0 / M_PI);
+
+    //Serial.println("r: " + String(JoyC_r) + " φ: " + String(JoyC_Phi));
+}
+
+
 
 //BAD
 // void processCharArray() {
@@ -172,6 +190,8 @@ void processCharArray() {
   // Update the rotation and movement of the robot based on the X and Y values
   Movement_UpdateRotation(x);
   Movement_UpdateMovement(y);
+
+  cartesianToPolar();
 }
 
 

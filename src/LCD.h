@@ -5,12 +5,12 @@
 #define LCDV_MID 60
 
 
-#define LCD_BTv_X 5
-#define LCD_BTv_Y 5 //220
+// #define LCD_BTv_X 5
+// #define LCD_BTv_Y 5 //220
 
-#define LCD_BTv_W 50
-#define LCD_BTv_H 20
-#define LCD_BTv_R 5
+// #define LCD_BTv_W 50
+// #define LCD_BTv_H 20
+// #define LCD_BTv_R 5
 
 
 #define SM_X 30
@@ -33,8 +33,8 @@
 #define LCD_FELG_SM_Y 190
 
 
-#define LCD_ANGLE_X 55
-#define LCD_ANGLE_Y 10
+#define LCD_ANGLE_X 45
+#define LCD_ANGLE_Y 40
 
 #define LCD_ANGLE_W 80
 #define LCD_ANGLE_H 60
@@ -57,6 +57,7 @@ void LCD_calib2_Message(void);
 
 void LCD_DispBatVolt();
 void LCD_DispAngle();
+void LCD_DispRotation();
 void LCD_Update_Mode();
 
 void LCD_Abort_Message();
@@ -65,6 +66,8 @@ void LCD_Abort_PWR_Message();
 void LCD_Abort_DEG_Message();
 
 void LCD_Resume_from_Abort_Message();
+
+void LCD_Western_Artificial_Horizion();
 
 void LCD_IMU_Message();
 

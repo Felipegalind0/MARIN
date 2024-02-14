@@ -37,10 +37,14 @@ void CheckButtons() {
 
 void drvMotorL(int16_t pwm) {
     drvMotor(0, (int8_t)constrain(pwm, -127, 127));
+
+    Lmotor = pwm/1.27;
 }
 
 void drvMotorR(int16_t pwm) {
     drvMotor(1, (int8_t)constrain(-pwm, -127, 127));
+
+    Rmotor = pwm/1.27;
 }
 
 void drvMotor(byte ch, int8_t sp) {

@@ -140,7 +140,7 @@ void RealTcode( void * pvParameters ){
   }
 }
 
-
+# define SEND_STATUS_OVER_SERIAL 0
 void exec_BackgroundTask() {
   // Wait for the syncSemaphore to be given by the RealTcode task
   if (xSemaphoreTake(syncSemaphore, portMAX_DELAY) == pdTRUE) {
@@ -152,7 +152,7 @@ void exec_BackgroundTask() {
 
     // 
     if (counter % logCounter == 0) {
-      if (serialMonitor) {
+      if (SEND_STATUS_OVER_SERIAL) {
         sendStatus();
         logData();
       }

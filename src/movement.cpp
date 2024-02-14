@@ -46,14 +46,14 @@ void Movement_Loop() {
 
     if (!standing) { // If Robot is not Standing
 
-        aveAbsOmg = aveAbsOmg * 0.9 + abs(varOmg) * 0.1;
-        aveAccZ   = aveAccZ * 0.9 + accZdata * 0.1;
+        Avg_Robot_Z_deg_per_sec = Avg_Robot_Z_deg_per_sec * 0.9 + abs(IMU_Y_deg_per_sec) * 0.1; // update average angular velocity
+        
 
         
 
         // 0.9*90= 72
         //if Pointed 72 deg up 
-        if (abs(aveAccZ) > 0.9 && aveAbsOmg < 1.5) {
+        if (abs(Avg_IMU_Z_acceleration) > 0.9 && Avg_Robot_Z_deg_per_sec < 1.5) {
 
             // Run Second Calibration
             LCD_calib2_Message();
@@ -163,7 +163,7 @@ void calib2() {
     gyroZoffset = 0.0;
     for (int i = 0; i < N_CAL2; i++) {
         readGyro();
-        accXoffset += accXdata;
+        accXoffset += IMU_X_acceleration;
         gyroZoffset += gyroZdata;
         vTaskDelay(9);
     }
@@ -192,9 +192,27 @@ void startDemo() {
 
 void getGyro() {
     readGyro();
-    varOmg = (gyroYdata - gyroYoffset);           // unit:deg/sec
-    yawAngle += (gyroZdata - gyroZoffset) * clk;  // unit:g
-    varAng += (varOmg + ((accXdata - accXoffset) * 57.3 - varAng) * cutoff) *
+    IMU_Y_deg_per_sec = (gyroYdata - gyroYoffset);// unit:deg/sec
+    IMU_Z_deg_per_sec = gyroZdata - gyroZoffset; // unit:deg/sec
+
+    Avg_IMU_Y_deg_per_sec = Avg_IMU_Y_deg_per_sec * 0.9 + IMU_Y_deg_per_sec * 0.1;  // update average y angular velocity
+    Avg_IMU_Z_deg_per_sec = Avg_IMU_Z_deg_per_sec * 0.9 + IMU_Z_deg_per_sec * 0.1;  // update average z angular velocity
+
+    Avg_IMU_X_acceleration   = Avg_IMU_X_acceleration * 0.9 + IMU_X_acceleration * 0.1;  // update average x acceleration
+    Avg_IMU_Y_acceleration   = Avg_IMU_Y_acceleration * 0.9 + IMU_Y_acceleration * 0.1;  // update average y acceleration 
+    Avg_IMU_Z_acceleration   = Avg_IMU_Z_acceleration * 0.9 + IMU_Z_acceleration * 0.1;  // update average z acceleration
+
+
+    //calculate the x, y, z angles
+    robot_Y_deg = (((Avg_IMU_X_acceleration) ? -1 : 1) * 90 * Avg_IMU_X_acceleration);  // unit:deg
+
+    yawAngle += IMU_Z_deg_per_sec * clk;  // unit:deg
+
+    // calculate the heading, as yawAngle mod 360
+    heading = (byte)(round(yawAngle));
+
+
+    varAng += (IMU_Y_deg_per_sec + ((IMU_X_acceleration - accXoffset) * 57.3 - varAng) * cutoff) *
               clk;  // complementary filter
 }
 
@@ -210,15 +228,15 @@ void readGyro() {
 
   // Assign the gyro data to the corresponding global variables
   // (Note the sign changes to match the robot's coordinate system)
-  gyroYdata = gX;
-  gyroZdata = -gY;
-  gyroXdata = -gZ;
+  gyroYdata = gX;  // y = x
+  gyroZdata = -gY; // z = -y
+  gyroXdata = -gZ; // x = -z
 
   // Assign the accelerometer data to the corresponding global variables
   // (Note the change in variable usage for aX)
-  accXdata = aZ;
-  accYdata = aX; // New assignment to use the previously unused variable aX
-  accZdata = aY;
+  IMU_X_acceleration = aZ; // x = z
+  IMU_Y_acceleration = aX; // y = x
+  IMU_Z_acceleration = aY; // z = y
 }
 
 
@@ -241,7 +259,7 @@ void drive() {
     varDst += Kdst * (varSpd * clk - moveTarget);
     varIang += KIang * varAng * clk;
     power =
-        varIang + varDst + (Kspd * varSpd) + (Kang * varAng) + (Komg * varOmg);
+        varIang + varDst + (Kspd * varSpd) + (Kang * varAng) + (Komg * IMU_Y_deg_per_sec);
     if (abs(power) > 1000.0)
         counterOverPwr += 1;
     else

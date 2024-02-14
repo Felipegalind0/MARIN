@@ -6,7 +6,19 @@
 int x = 0;  // Defines robot rotation rate    + = R     &   - = L
 int y = 0;  // Defines robot FWD/BACK         + = FWD   &   - = BACK
 
-float vBatt, voltAve             = 3.7;
+float deviceTemp = -1.0;
+
+
+//-----------------Battery Variables-----------------
+
+
+int perCentBatt = -1;
+
+float vBatt, voltAve             = -1.0;
+
+float vBatt_min = 3.3, vBatt_max = 4.1;
+
+boolean isCharging = false;
 
 
 
@@ -75,16 +87,24 @@ int16_t counter       = 0;
 uint32_t time0 = 0, time1 = 0;
 int16_t counterOverPwr = 0, maxOvp = 80, maxAngle = 30;
 float power, powerR, powerL, yawPower;
-float varAng, varOmg, varSpd, varDst, varIang;
+float varAng, IMU_Y_deg_per_sec, IMU_Z_deg_per_sec, varSpd, varDst, varIang;
 float gyroXoffset, gyroYoffset, gyroZoffset, accXoffset;
-float gyroXdata, gyroYdata, gyroZdata, accXdata, accYdata, accZdata;
-float aveAccX = 0.0, aveAccZ = 0.0, aveAbsOmg = 0.0;
+float gyroXdata, gyroYdata, gyroZdata, IMU_X_acceleration, IMU_Y_acceleration, IMU_Z_acceleration;
+float Avg_IMU_X_deg_per_sec = 0.0, Avg_IMU_Y_deg_per_sec = 0.0, Avg_IMU_Z_deg_per_sec = 0.0;
+float Avg_IMU_X_acceleration = 0.0, Avg_IMU_Y_acceleration = 0.0, Avg_IMU_Z_acceleration = 0.0;
+float Avg_Robot_Z_deg_per_sec = 0.0;
+float robot_X_deg = 0.0, robot_Y_deg = 0.0, robot_Z_deg = 0.0;
 float cutoff            = 0.1;                     //~=2 * pi * f (Hz)
 const float clk         = 0.01;                    // in sec,
 const uint32_t interval = (uint32_t)(clk * 1000);  // in msec
 float Kang, Komg, KIang, Kyaw, Kdst, Kspd;
 int16_t maxPwr;
+
 float yawAngle = 0.0;
+byte heading = 0;
+
+
+
 float moveDestination, moveTarget;
 float moveRate        = 0.0;
 const float moveStep  = 0.2 * clk;
@@ -97,6 +117,8 @@ float spinDest, spinTarget, spinFact = 1.0;
 float spinStep  = 0.0;  // deg per 10msec
 int16_t ipowerL = 0, ipowerR = 0;
 int16_t motorLdir = 0, motorRdir = 0;  // 0:stop 1:+ -1:-
+
+int Rmotor = 0, Lmotor = 0;
 
 int16_t punchPwr, punchPwr2, punchDur, punchCountL = 0, punchCountR = 0;
 
@@ -116,7 +138,7 @@ void resetVar() {
     spinStep       = 0.0;
     yawAngle       = 0.0;
     varAng         = 0.0;
-    varOmg         = 0.0;
+    IMU_Y_deg_per_sec         = 0.0;
     varDst         = 0.0;
     varSpd         = 0.0;
     varIang        = 0.0;
@@ -148,8 +170,8 @@ void setMode(bool inc) {
     LCD_Update_Mode();
 }
 
-// Update & show Battery Voltage On Display
-void updateBatVolt(){
-    vBatt = M5.Axp.GetBatVoltage();
-    LCD_DispBatVolt();
-}
+// // Update & show Battery Voltage On Display
+// void updateBatVolt(){
+//     vBatt = M5.Axp.GetBatVoltage();
+//     LCD_DispBatVolt();
+// }

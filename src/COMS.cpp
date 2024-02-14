@@ -24,11 +24,11 @@ void serial_Init() {
 //   Serial.print(",");
 //   Serial.print(gyroZdata);
 //   Serial.print(",");
-//   Serial.print(accXdata);
+//   Serial.print(IMU_X_acceleration);
 //   Serial.print(",");
-//   Serial.print(accYdata);
+//   Serial.print(IMU_Y_acceleration);
 //   Serial.print(",");
-//   Serial.println(accZdata);
+//   Serial.println(IMU_Z_acceleration);
 //   yield();
 // }
 
@@ -40,11 +40,11 @@ void logData() {
   Serial2.print(",");
   Serial2.print(gyroZdata);
   Serial2.print(",");
-  Serial2.print(accXdata);
+  Serial2.print(IMU_X_acceleration);
   Serial2.print(",");
-  Serial2.print(accYdata);
+  Serial2.print(IMU_Y_acceleration);
   Serial2.print(",");
-  Serial2.println(accZdata);
+  Serial2.println(IMU_Z_acceleration);
   yield();
 }
 
