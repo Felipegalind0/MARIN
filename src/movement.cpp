@@ -3,7 +3,41 @@
 #include "movement.h"
 #include "IO.h"
 #include "LCD.h"
+
+#include "lfs.h"
+
 //#include <WebSerial.h>
+
+// import NVS library
+
+// Setup Code
+void Movement_Setup() {
+
+    //StartUp IMU
+    imuInit();
+
+    //Zero Motors
+    resetMotor();
+
+    // Reset to Default Parameters
+    resetPara();
+
+    //Zero Out Variables
+    resetVar();
+
+    // Run Calibration1
+    
+    calib1();
+  
+
+// #ifdef DEBUG
+//     debugSetup();
+// #else
+//     setMode(false);
+// #endif
+}
+
+
 
 
 // Update the rotation rate and direction based on the input rotation value
@@ -106,9 +140,12 @@ void Abort(String MSG){
     Serial.print(MSG);
 
     standing = false;
+    isArmed = false;
     hasFallen = true;
 
     while(!abortWasHandled){
+
+        M5.update();
         vTaskDelay(500);
         ledcWriteTone(SPEAKER_CH,911);
         digitalWrite(LED, HIGH);
@@ -136,19 +173,36 @@ void Abort(String MSG){
 
 // First Calibration
 void calib1() {
-    calDelay(30);
-    digitalWrite(LED, HIGH);
-    calDelay(80);
+
+
     LCD_calib1_Message();
-    gyroYoffset = 0.0;
+    //exec_status = "IMU Calibration";
+    update_exec_status("Starting IMU Calibration");
+    LCD_Status_Message();
+    RED_LED(1);
+
+    calDelay(150);
+
+    gyro_deg_per_sec_Y_offset = 0.0;
+
     for (int i = 0; i < N_CAL1; i++) {
         readGyro();
-        gyroYoffset += gyroYdata;
+        gyro_deg_per_sec_Y_offset += gyro_Y_data;
+        update_exec_status("g_Y = " + String(gyro_Y_data));
+        LCD_Status_Message();
         vTaskDelay(9);
     }
-    gyroYoffset /= (float)N_CAL1;
+
+    gyro_deg_per_sec_Y_offset /= (float)N_CAL1;
+
+    update_exec_status("g_Y_offset = " + String(gyro_deg_per_sec_Y_offset));
+    LCD_Status_Message();
+    
     M5.Lcd.fillScreen(BLACK);
-    digitalWrite(LED, LOW);
+
+    RED_LED(0);
+
+    LCD_calib1_complete_Message();
 }
 
 // Second Calibration
@@ -160,15 +214,15 @@ void calib2() {
     M5.Lcd.setCursor(30, LCDV_MID);
     M5.Lcd.println(" Cal-2  ");
     accXoffset  = 0.0;
-    gyroZoffset = 0.0;
+    gyro_deg_per_sec_Z_offset = 0.0;
     for (int i = 0; i < N_CAL2; i++) {
         readGyro();
         accXoffset += IMU_X_acceleration;
-        gyroZoffset += gyroZdata;
+        gyro_deg_per_sec_Z_offset += gyroZdata;
         vTaskDelay(9);
     }
     accXoffset /= (float)N_CAL2;
-    gyroZoffset /= (float)N_CAL2;
+    gyro_deg_per_sec_Z_offset /= (float)N_CAL2;
     M5.Lcd.fillScreen(BLACK);
     digitalWrite(LED, LOW);
 }
@@ -177,7 +231,7 @@ void calib2() {
 
 void calDelay(int n) {
     for (int i = 0; i < n; i++) {
-        getGyro();
+        readGyro();
         vTaskDelay(9);
     }
 }
@@ -192,8 +246,8 @@ void startDemo() {
 
 void getGyro() {
     readGyro();
-    IMU_Y_deg_per_sec = (gyroYdata - gyroYoffset);// unit:deg/sec
-    IMU_Z_deg_per_sec = gyroZdata - gyroZoffset; // unit:deg/sec
+    IMU_Y_deg_per_sec = (gyro_Y_data - gyro_deg_per_sec_Y_offset);// unit:deg/sec
+    IMU_Z_deg_per_sec = gyroZdata - gyro_deg_per_sec_Z_offset; // unit:deg/sec
 
     Avg_IMU_Y_deg_per_sec = Avg_IMU_Y_deg_per_sec * 0.9 + IMU_Y_deg_per_sec * 0.1;  // update average y angular velocity
     Avg_IMU_Z_deg_per_sec = Avg_IMU_Z_deg_per_sec * 0.9 + IMU_Z_deg_per_sec * 0.1;  // update average z angular velocity
@@ -228,7 +282,7 @@ void readGyro() {
 
   // Assign the gyro data to the corresponding global variables
   // (Note the sign changes to match the robot's coordinate system)
-  gyroYdata = gX;  // y = x
+  gyro_Y_data = gX;  // y = x
   gyroZdata = -gY; // z = -y
   gyroXdata = -gZ; // x = -z
 

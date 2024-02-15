@@ -15,4 +15,5 @@ void drvMotor(byte ch, int8_t sp);
 void drvMotorR(int16_t pwm);
 void drvMotorL(int16_t pwm);
 void CheckButtons();
+void RED_LED(bool state);
 #endif

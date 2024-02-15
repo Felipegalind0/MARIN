@@ -71,4 +71,6 @@ void LCD_Western_Artificial_Horizion();
 
 void LCD_IMU_Message();
 
+void LCD_Status_Message();
+
 #endif

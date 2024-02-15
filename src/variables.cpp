@@ -1,3 +1,4 @@
+//----------------variables.cpp----------------
 #include "variables.h"
 #include "LCD.h"
 
@@ -8,6 +9,16 @@ int y = 0;  // Defines robot FWD/BACK         + = FWD   &   - = BACK
 
 float deviceTemp = -1.0;
 
+
+//-----------------System Variables-----------------
+byte robot_config_counter = 0;
+boolean is_booted = false;
+String exec_status = "OFF";
+boolean exec_status_has_changed = false;
+
+TaskHandle_t Task0, Task1;
+
+SemaphoreHandle_t syncSemaphore;
 
 //-----------------Battery Variables-----------------
 
@@ -67,6 +78,17 @@ boolean JoyC_Xinput = false;
 uint8_t lcd_brightness = 12;
 
 
+//-----------------IMU Variables-----------------
+float varAng, IMU_Y_deg_per_sec, IMU_Z_deg_per_sec, varSpd, varDst, varIang;
+
+float gyroXoffset, gyro_deg_per_sec_Y_offset, gyro_deg_per_sec_Z_offset, accXoffset;
+
+float gyroXdata, gyro_Y_data, gyroZdata, IMU_X_acceleration, IMU_Y_acceleration, IMU_Z_acceleration;
+
+float Avg_IMU_X_deg_per_sec = 0.0, Avg_IMU_Y_deg_per_sec = 0.0, Avg_IMU_Z_deg_per_sec = 0.0;
+float Avg_IMU_X_acceleration = 0.0, Avg_IMU_Y_acceleration = 0.0, Avg_IMU_Z_acceleration = 0.0;
+float Avg_Robot_Z_deg_per_sec = 0.0;
+float robot_X_deg = 0.0, robot_Y_deg = 0.0, robot_Z_deg = 0.0;
 
 
 
@@ -80,20 +102,21 @@ uint8_t lcd_brightness = 12;
 
 // Variables and stuff
 boolean serialMonitor   = true;
+
+
 boolean standing        = false;
 boolean hasFallen       = false;
+boolean isArmed         = false;
 boolean abortWasHandled = false;
+
 int16_t counter       = 0;
 uint32_t time0 = 0, time1 = 0;
 int16_t counterOverPwr = 0, maxOvp = 80, maxAngle = 30;
 float power, powerR, powerL, yawPower;
-float varAng, IMU_Y_deg_per_sec, IMU_Z_deg_per_sec, varSpd, varDst, varIang;
-float gyroXoffset, gyroYoffset, gyroZoffset, accXoffset;
-float gyroXdata, gyroYdata, gyroZdata, IMU_X_acceleration, IMU_Y_acceleration, IMU_Z_acceleration;
-float Avg_IMU_X_deg_per_sec = 0.0, Avg_IMU_Y_deg_per_sec = 0.0, Avg_IMU_Z_deg_per_sec = 0.0;
-float Avg_IMU_X_acceleration = 0.0, Avg_IMU_Y_acceleration = 0.0, Avg_IMU_Z_acceleration = 0.0;
-float Avg_Robot_Z_deg_per_sec = 0.0;
-float robot_X_deg = 0.0, robot_Y_deg = 0.0, robot_Z_deg = 0.0;
+
+
+
+
 float cutoff            = 0.1;                     //~=2 * pi * f (Hz)
 const float clk         = 0.01;                    // in sec,
 const uint32_t interval = (uint32_t)(clk * 1000);  // in msec
@@ -129,19 +152,19 @@ byte Bbtn = 0;
 
 void resetVar() {
     abortWasHandled = false;
-    power          = 0.0;
-    moveTarget     = 0.0;
-    moveRate       = 0.0;
-    spinContinuous = false;
-    spinDest       = 0.0;
-    spinTarget     = 0.0;
-    spinStep       = 0.0;
-    yawAngle       = 0.0;
-    varAng         = 0.0;
-    IMU_Y_deg_per_sec         = 0.0;
-    varDst         = 0.0;
-    varSpd         = 0.0;
-    varIang        = 0.0;
+    power               = 0.0;
+    moveTarget          = 0.0;
+    moveRate            = 0.0;
+    spinContinuous      = false;
+    spinDest            = 0.0;
+    spinTarget          = 0.0;
+    spinStep            = 0.0;
+    yawAngle            = 0.0;
+    varAng              = 0.0;
+    IMU_Y_deg_per_sec   = 0.0;
+    varDst              = 0.0;
+    varSpd              = 0.0;
+    varIang             = 0.0;
 }
 
 void resetPara() {
@@ -161,14 +184,22 @@ void resetPara() {
     punchPwr2     = max(punchPwr, motorDeadband);
 }
 
+
+void update_exec_status(String status){
+    exec_status = status;
+    //LCD_Status_Message();
+    exec_status_has_changed = true;
+    Serial.println(status);
+}
+
 // -------Functions that should be run on second core-------
 
 // Update mode 
-void setMode(bool inc) {
-    if (inc) demoMode = ++demoMode % 2;
+// void setMode(bool inc) {
+//     if (inc) demoMode = ++demoMode % 2;
 
-    LCD_Update_Mode();
-}
+//     LCD_Update_Mode();
+// }
 
 // // Update & show Battery Voltage On Display
 // void updateBatVolt(){

@@ -3,7 +3,11 @@
 
 By Felipe Galindo
 */
+
+#include "main.h"
+
 # define SOFTWARE_VERSION "3.0.0"
+
 /*
 This code is based of the example BalaC with the following changes:
 
@@ -112,186 +116,28 @@ long push (>1sec) of power button: switch mode between standig and demo(circle)
 
 */
 
-#include "systeminit.h"
-#include "IO.h"
-#include "movement.h"
-#include "variables.h"
-#include "LCD.h"
-#include "COMS.h"
-
-
-TaskHandle_t Task0, Task1;
-
-SemaphoreHandle_t syncSemaphore;
-
-
-// Function that contains code that needs to run in real-time
-void RealTcode( void * pvParameters ){ 
-  for(;;){ // Infinite loop for continuous execution
-    Movement_Loop(); // Call the movement loop for balancing and motion control
-
-    counter += 1; // Increment the counter variable by 1 each iteration
-    
-    // Give the semaphore to allow background tasks to run
-    xSemaphoreGive(syncSemaphore);
-    
-    // Delay the task for a specific interval (in milliseconds) to control execution frequency
-    vTaskDelay(pdMS_TO_TICKS(interval));
-  }
-}
-
-# define SEND_STATUS_OVER_SERIAL 0
-void exec_BackgroundTask() {
-  // Wait for the syncSemaphore to be given by the RealTcode task
-  if (xSemaphoreTake(syncSemaphore, portMAX_DELAY) == pdTRUE) {
-
-    // 
-    if ((counter % btnCounter) == 0) {
-      CheckButtons();
-    }
-
-    // 
-    if (counter % logCounter == 0) {
-      if (SEND_STATUS_OVER_SERIAL) {
-        sendStatus();
-        logData();
-      }
-    }
-
-    // Update the LCD display
-    LCD_loop();
-  }
-}
 
 
 
 
-void BackgroundTask( void * pvParameters ) {
-  for (;;) {  // Infinite loop for background task
-
-
-    BackgroundTask_execution_time_start = esp_timer_get_time(); // Record the start time of the loop
-
-    BackgroundTask_no_execution_time = BackgroundTask_execution_time_start - BackgroundTask_execution_time_end; // Calculate the time not spent executing the loop
-
-    yield(); // Yield the processor to other tasks
-    // Wait for the syncSemaphore to be given by the RealTcode task
-
-    exec_BackgroundTask(); // Execute the background task
-
-    // Record the end time of the loop
-    BackgroundTask_execution_time_end = esp_timer_get_time();
-
-    // Calculate the time taken to execute the loop
-    BackgroundTask_execution_time = BackgroundTask_execution_time_end - BackgroundTask_execution_time_start;
-
-    // Calculate the total execution time and CPU load
-    BackgroundTask_total_execution_time = BackgroundTask_execution_time + BackgroundTask_no_execution_time;
-
-    if (BackgroundTask_total_execution_time != 0 && BackgroundTask_execution_time != 0) {
-
-      // Calculate the CPU load
-      BackgroundTask_CPU_load = (BackgroundTask_execution_time * 100/ BackgroundTask_total_execution_time);
-
-      // Serial.print("@BackgroundTask_no_execution_time_start: ");
-      // Serial.print(BackgroundTask_no_execution_time_start);
-      // Serial.print(" @BackgroundTask_no_execution_time_end: ");
-      // Serial.print(BackgroundTask_no_execution_time_end);
-
-      // Serial.print("@BackgroundTask_no_execution_time: "); 
-      // Serial.print(BackgroundTask_no_execution_time);
-      // Serial.print(" @BackgroundTask_total_execution_time: ");
-      // Serial.print(BackgroundTask_total_execution_time);
-      // Serial.print(" @BackgroundTask_execution_time: ");
-      // Serial.print(BackgroundTask_execution_time);
-      // Serial.print(" @BackgroundTask: CPU load = ");
-      // Serial.println(BackgroundTask_CPU_load);
-
-    }
-
-    vTaskDelay(pdMS_TO_TICKS(interval)); // Delay the task for a specific interval (in milliseconds) to control execution frequency  
-  }
-}
-
-
-// Setup Code
-void Movement_Setup() {
-
-    //StartUp IMU
-    imuInit();
-
-    //Zero Motors
-    resetMotor();
-
-    // Reset to Default Parameters
-    resetPara();
-
-    //Zero Out Variables
-    resetVar();
-
-    // Run Calibration1
-    LCD_calib1_Message();
-    calib1();
-    LCD_calib1_complete_Message();
-#ifdef DEBUG
-    debugSetup();
-#else
-    setMode(false);
-#endif
-}
 
 
 
 
-#define RealTcore 1
-#define BackgroundCore 0
+
+
+
+
+
+
+
+
 
 void setup() {
   // Initialize various systems
 
-  // Uncomment the line below to set the CPU frequency (if needed)
-  // setCpuFrequencyMhz(512);
-
-  serial_Init();
-
-  Serial.println("\n\nCPU" + String(xPortGetCoreID()) + " setup()\n");
-
-  // Create a binary semaphore for task synchronization
-  syncSemaphore = xSemaphoreCreateBinary();
-
-  // Initialize web serial, I2C, LCD, speaker, microphone, and other systems
-  SysInit_Setup();
-
-  // Initialize movement systems, motors, gyro, etc.
-  Movement_Setup();
-
-
-
-  // // Create a task for real-time code execution
-  // // Task1code() function, with priority 1, executed on core 1
-  // xTaskCreatePinnedToCore(
-  //                   RealTcode,   /* Task function. */
-  //                   "Task0",     /* name of task. */
-  //                   10000,       /* Stack size of task */
-  //                   NULL,        /* parameter of the task */
-  //                   INT_MAX,           /* priority of the task */
-  //                   &Task1,      /* Task handle to keep track of created task */
-  //                   1);          /* pin task to core 1 */
-
-  // // Add a delay to give the task some time to start
-  // vTaskDelay(100); 
-
-  // // Create a background task for less time-sensitive operations
-  // // Executed on core 0 with lower priority than the real-time task
-  // xTaskCreatePinnedToCore(
-  //                     BackgroundTask,   /* Task function. */
-  //                     "Task1",          /* name of task. */
-  //                     10000,            /* Stack size of task */
-  //                     NULL,             /* parameter of the task */
-  //                     -1,               /* priority of the task (lower than RealTcode) */
-  //                     NULL,             /* Task handle to keep track of created task */
-  //                     0);               /* pin task to core 0 */
-
+  // Uncomment the line below to set the CPU frequency
+  setCpuFrequencyMhz(240);
 
   // Create a binary semaphore for task synchronization
   syncSemaphore = xSemaphoreCreateBinary();
@@ -324,7 +170,7 @@ void setup() {
   vTaskDelay(100);
 
   // Validate that the system started up correctly
-  SysInit_Check();
+   //SysInit_Check();
 }
 
 

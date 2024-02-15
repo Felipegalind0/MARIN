@@ -1,3 +1,4 @@
+//---------------------LCD.cpp---------------------
 #include <M5StickCPlus.h>
 #include "IO.h"
 #include "variables.h"
@@ -14,18 +15,43 @@ TFT_eSprite canvas = TFT_eSprite(&M5.Lcd);
 void LCD_flush(){
     canvas.pushSprite(0, 0);
     canvas.fillSprite(BLACK);
+} 
+
+void LCD_Status_Message(){
+
+    String status_message = exec_status;
+
+    // get the length of status_message
+    //int status_message_length = status_message.length();
+
+    canvas.setTextFont(1);
+    canvas.setTextSize(1);
+    //canvas.setTextColor(BLACK);
+    
+    //define the status box UI variables
+    const int STATUS_M_X = 0;
+    const int STATUS_M_Y = 230;
+    const int STATUS_M_W = 135;
+    const int STATUS_M_H = 10;
+    const int STATUS_M_R = 5;
+
+    const int STATUS_M_COLOR = WHITE;
+    int STATUS_M_TEXT_COLOR = invertColor16(STATUS_M_COLOR);
+    //int STATUS_M_TEXT_COLOR = BLACK;
+
+
+
+    // define color for the status box as white
+    
+
+    canvas.fillRoundRect(STATUS_M_X, STATUS_M_Y,
+     STATUS_M_W, STATUS_M_H, STATUS_M_R, STATUS_M_COLOR);
+    
+    canvas.setTextColor(STATUS_M_TEXT_COLOR);
+    
+    canvas.setCursor(STATUS_M_X+2, STATUS_M_Y+1);
+    canvas.print(status_message);
 }
-
-
-
-
-
-
-
-
-
-
-
 
 void LCD_CPU_Widget(){
     canvas.setTextFont(1);
@@ -38,25 +64,12 @@ void LCD_CPU_Widget(){
     const int COUNTER_M_H = 10;
     const int COUNTER_M_R = 5;
 
-
     const int COUNTER_M_COLOR = WHITE;
     int COUNTER_M_TEXT_COLOR = invertColor16(COUNTER_M_COLOR);
-
 
     canvas.fillRoundRect(COUNTER_M_X, COUNTER_M_Y, COUNTER_M_W, COUNTER_M_H, COUNTER_M_R, COUNTER_M_COLOR);
     
     canvas.setTextColor(COUNTER_M_TEXT_COLOR);
-
-    // canvas.setCursor(COUNTER_M_X+100, COUNTER_M_Y+2);
-    // canvas.print(counter);
-    
-    
-    // canvas.setCursor(COUNTER_M_X+40, COUNTER_M_Y+2);
-    // canvas.print("us");
-    // canvas.setCursor(COUNTER_M_X+55, COUNTER_M_Y+2);
-    // canvas.print(RealTcode_execution_time);
-
-    //print CPU load
 
     canvas.setCursor(COUNTER_M_X+5, COUNTER_M_Y+2);
     canvas.print("CPU");
@@ -74,105 +87,6 @@ void LCD_CPU_Widget(){
     S_CPU_load += String(int(RealTcode_CPU_load))+"%";
     
     canvas.print(S_CPU_load);
-
-    
-    // const int JoyCircle_X = 14;
-    // const int JoyCircle_Y = 14;
-    // const int JoyCircle_R = 10;
-    // const int JoyCircle_IR = 3;
-    // const int JoyCircle_OC = BLACK;
-
-    // int JoyCircle_IC = TFT_LIGHTGREY;
-
-    // if (JoyC_btn){
-    //     JoyCircle_IC = RED;
-    // }
-    // else if (JoyC_In_X_DeadZone && JoyC_In_y_DeadZone){
-    //     JoyCircle_IC = TFT_LIGHTGREY;
-    // }
-    // else if (JoyC_r > 40){
-    //     JoyCircle_IC = BLACK;
-    // }
-    // else{
-    //     JoyCircle_IC = TFT_DARKGREY;
-    // }
-    
-    // float inner_JoyCircle_X = JoyCircle_X + ((JoyC_X+1) / 10) -(JoyCircle_R/2);
-    // float inner_JoyCircle_Y = JoyCircle_Y - ((JoyC_Y+1) / 10) +(JoyCircle_R/2); // y is inverted
-
-    // canvas.drawCircle(JoyCircle_X, JoyCircle_Y, JoyCircle_R, JoyCircle_OC);
-    // canvas.fillCircle(inner_JoyCircle_X, inner_JoyCircle_Y, JoyCircle_IR, JoyCircle_IC);
-
-    // canvas.setCursor(JoyCircle_X-10, JoyCircle_Y+16);
-    // if (JoyC_In_X_DeadZone){
-    //     canvas.setTextColor(TFT_LIGHTGREY);
-    // }
-    // else if (5 >= JoyC_X || JoyC_X >= 95){
-    //     canvas.setTextColor(BLACK);
-    // }
-    // else{
-    //     canvas.setTextColor(TFT_DARKGREY);
-    // }
-    // if (JoyC_X < 10){
-    //     canvas.print("0"+String(JoyC_X));
-    // }
-    // else{
-    //     canvas.print(JoyC_X);
-    // }
-
-
-    // canvas.setCursor(JoyCircle_X+4, JoyCircle_Y+16);
-    // if (JoyC_In_y_DeadZone){
-    //     canvas.setTextColor(TFT_LIGHTGREY);
-    // }
-    // else if (5 >= JoyC_Y || JoyC_Y >= 95){
-    //     canvas.setTextColor(BLACK);
-    // }
-    // else{
-    //     canvas.setTextColor(TFT_DARKGREY);
-    // }
-
-    // if (JoyC_Y < 10){
-    //     canvas.print("0"+String(JoyC_Y));
-    // }
-    // else{
-    //     canvas.print(JoyC_Y);
-    // }
-    
-
-
-    
-    // byte Xinput_rect_x = 22;
-    // byte Xinput_rect_y = 4;
-
-    // if(JoyC_X_left_right == -1){ // left
-
-    //     canvas.fillRect(JoyCircle_X-14, JoyCircle_Y-11, Xinput_rect_y, Xinput_rect_x, BLACK);
-    //     //canvas.drawRect(JoyCircle_X-12, JoyCircle_Y-10, JoyCircle_X-6, JoyCircle_Y+10, BLACK);
-    //     //canvas.drawLine(JoyCircle_X-10, JoyCircle_Y-10, JoyCircle_X-10, JoyCircle_Y+10, BLACK);
-    // }
-
-    // else if(JoyC_X_left_right == 1){ // right
-    //     canvas.fillRect(JoyCircle_X+11, JoyCircle_Y-10, Xinput_rect_y, Xinput_rect_x, BLACK);
-    //     //canvas.drawRect(JoyCircle_X+6, JoyCircle_Y-10, JoyCircle_X+12, JoyCircle_Y+10, BLACK);
-    //     //canvas.drawLine(JoyCircle_X+10, JoyCircle_Y-10, JoyCircle_X+10, JoyCircle_Y+10, BLACK);
-    // }
-
-
-    // if(JoyC_Y_up_down == -1){   // down
-    //     canvas.fillRect(JoyCircle_X-10, JoyCircle_Y+11, Xinput_rect_x, Xinput_rect_y, BLACK);
-    //     //canvas.drawRect(JoyCircle_X-10, JoyCircle_Y-12, JoyCircle_X+10, JoyCircle_Y-6, BLACK);
-    //     //canvas.drawLine(JoyCircle_X-10, JoyCircle_Y-10, JoyCircle_X+10, JoyCircle_Y-10, BLACK);
-    // }
-
-    // else if(JoyC_Y_up_down == 1){   // up
-    //     canvas.fillRect(JoyCircle_X-10, JoyCircle_Y-14, Xinput_rect_x, Xinput_rect_y, BLACK);
-    //     //canvas.drawRect(JoyCircle_X-10, JoyCircle_Y+6, JoyCircle_X+10, JoyCircle_Y+12, BLACK);
-    //     //canvas.drawLine(JoyCircle_X-10, JoyCircle_Y+10, JoyCircle_X+10, JoyCircle_Y+10, BLACK);
-    // }
-
-
-
 
 }
 
@@ -237,6 +151,8 @@ void LCD_loop(){
     // LCD_DispAngle();
     // LCD_DispRotation();
 
+    LCD_Status_Message();
+
 
     canvas.pushSprite(0, 0);
 }
@@ -276,21 +192,25 @@ void LCD_Felg_Message(void){
    canvas.print("in Minnesota");
 }
 
+// void LCD_calib1_Message(void){
+//    canvas.setTextFont(2);
+//    canvas.setTextSize(1);
+//    canvas.setTextColor(RED);
+
+//    canvas.setCursor(Middle_M_X, Middle_M_Y);
+//    canvas.print("Executing");
+
+//    canvas.setCursor(Middle_M_X, Middle_M_Y + 15);
+//    canvas.print("Stationary");
+
+//    canvas.setCursor(Middle_M_X, Middle_M_Y + 30);
+//    canvas.print("Calibration");
+
+//    canvas.setTextColor(WHITE);
+// }
+
 void LCD_calib1_Message(void){
-   canvas.setTextFont(2);
-   canvas.setTextSize(1);
-   canvas.setTextColor(RED);
 
-   canvas.setCursor(Middle_M_X, Middle_M_Y);
-   canvas.print("Executing");
-
-   canvas.setCursor(Middle_M_X, Middle_M_Y + 15);
-   canvas.print("Stationary");
-
-   canvas.setCursor(Middle_M_X, Middle_M_Y + 30);
-   canvas.print("Calibration");
-
-   canvas.setTextColor(WHITE);
 }
 
 void LCD_calib1_complete_Message(void){

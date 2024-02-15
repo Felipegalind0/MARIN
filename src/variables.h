@@ -1,3 +1,5 @@
+//-----------------Variables.h-----------------
+
 #ifndef _VARIABLES_H_
 #define _VARIABLES_H_
 
@@ -5,10 +7,27 @@
 #define logCounter 100
 
 #include <M5StickCPlus.h>
+#include <LCD.h>
 
 extern int x, y;
 
 extern float deviceTemp;
+
+//-----------------System Variables-----------------
+
+
+#define RealTcore 1
+#define BackgroundCore 0
+
+extern byte robot_config_counter;
+extern boolean is_booted;
+extern String exec_status;
+extern boolean exec_status_has_changed;
+
+extern TaskHandle_t Task0, Task1;
+
+extern SemaphoreHandle_t syncSemaphore;
+
 
 //-----------------Battery Variables-----------------
 
@@ -55,7 +74,7 @@ extern boolean JoyC_Xinput;
 //-----------------LCD Variables-----------------
 extern uint8_t lcd_brightness;
 
-extern boolean standing, hasFallen, abortWasHandled;
+extern boolean standing, hasFallen, isArmed, abortWasHandled;
 
 extern boolean serialMonitor;
 extern int16_t counter;
@@ -63,8 +82,8 @@ extern uint32_t time0, time1;
 extern int16_t counterOverPwr, maxOvp, maxAngle;
 extern float power, powerR, powerL, yawPower;
 extern float varAng, IMU_Y_deg_per_sec, IMU_Z_deg_per_sec, varSpd, varDst, varIang;
-extern float gyroXoffset, gyroYoffset, gyroZoffset, accXoffset;
-extern float gyroXdata, gyroYdata, gyroZdata, IMU_X_acceleration, IMU_Y_acceleration, IMU_Z_acceleration;
+extern float gyroXoffset, gyro_deg_per_sec_Y_offset, gyro_deg_per_sec_Z_offset, accXoffset;
+extern float gyroXdata, gyro_Y_data, gyroZdata, IMU_X_acceleration, IMU_Y_acceleration, IMU_Z_acceleration;
 extern float Avg_IMU_X_deg_per_sec, Avg_IMU_Y_deg_per_sec, Avg_IMU_Z_deg_per_sec;
 extern float Avg_IMU_X_acceleration, Avg_IMU_Y_acceleration, Avg_IMU_Z_acceleration;
 extern float Avg_Robot_X_deg_per_sec, Avg_Robot_Y_deg_per_sec, Avg_Robot_Z_deg_per_sec;
@@ -100,6 +119,8 @@ void setMode(bool inc);
 
 void resetVar();
 void resetPara();
+
+void update_exec_status(String status);
 
 
 #endif // _VARIABLES_H_

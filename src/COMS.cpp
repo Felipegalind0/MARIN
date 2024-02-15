@@ -7,7 +7,7 @@
 void serial_Init() {
 
   // Initialize the physical serial interface for debugging
-  Serial.begin(115200);
+  // Serial.begin(115200);
 
 
   Serial2.begin(115200, SERIAL_8N1, 32, 33);
@@ -20,7 +20,7 @@ void serial_Init() {
 //   yield();
 //   Serial.print(gyroXdata);
 //   Serial.print(",");
-//   Serial.print(gyroYdata);
+//   Serial.print(gyro_Y_data);
 //   Serial.print(",");
 //   Serial.print(gyroZdata);
 //   Serial.print(",");
@@ -36,7 +36,7 @@ void logData() {
   yield();
   Serial2.print(gyroXdata);
   Serial2.print(",");
-  Serial2.print(gyroYdata);
+  Serial2.print(gyro_Y_data);
   Serial2.print(",");
   Serial2.print(gyroZdata);
   Serial2.print(",");

@@ -3,6 +3,10 @@
 #include "speaker.h"
 #include "IO.h"
 
+void RED_LED(bool state){
+    digitalWrite(LED, !state);
+}
+
 //Check if button has been pressed
 void CheckButtons() {
     byte pbtn = M5.Axp.GetBtnPress();
@@ -21,9 +25,9 @@ void CheckButtons() {
     }
         
         
-    else if (pbtn == 1){
-        setMode(true);  // long push
-    }
+    // else if (pbtn == 1){
+    //     setMode(true);  // long push
+    // }
 
     if (Abtn){
       Serial.println("A Button Pressed");
