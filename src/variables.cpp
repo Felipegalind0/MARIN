@@ -5,7 +5,7 @@
 // These are the 2 important global variables that are linked by variables.h
 
 int x = 0;  // Defines robot rotation rate    + = R     &   - = L
-int y = 0;  // Defines robot FWD/BACK         + = FWD   &   - = BACK
+int y = 0;  // Defines robot FWD/ROBOT_BACK_SIDE         + = FWD   &   - = ROBOT_BACK_SIDE
 
 float deviceTemp = -1.0;
 
@@ -81,15 +81,19 @@ uint8_t lcd_brightness = 12;
 //-----------------IMU Variables-----------------
 float varAng, IMU_Y_deg_per_sec, IMU_Z_deg_per_sec, varSpd, varDst, varIang;
 
-float gyroXoffset, gyro_deg_per_sec_Y_offset, gyro_deg_per_sec_Z_offset, accXoffset;
+float gyroXoffset, gyro_deg_per_sec_Y_offset, gyro_deg_per_sec_Z_offset, accXoffset, accYoffset, accZoffset;
 
 float gyroXdata, gyro_Y_data, gyroZdata, IMU_X_acceleration, IMU_Y_acceleration, IMU_Z_acceleration;
 
+boolean IMU_has_been_calibrated = false, IMU_has_been_init = false;
 float Avg_IMU_X_deg_per_sec = 0.0, Avg_IMU_Y_deg_per_sec = 0.0, Avg_IMU_Z_deg_per_sec = 0.0;
 float Avg_IMU_X_acceleration = 0.0, Avg_IMU_Y_acceleration = 0.0, Avg_IMU_Z_acceleration = 0.0;
 float Avg_Robot_Z_deg_per_sec = 0.0;
 float robot_X_deg = 0.0, robot_Y_deg = 0.0, robot_Z_deg = 0.0;
 
+float roll = 0.0, pitch = 0.0, yaw = 0.0;
+
+float gX = 0.0, gY = 0.0, gZ = 0.0, aX = 0.0, aY = 0.0, aZ = 0.0;
 
 
 

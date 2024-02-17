@@ -216,7 +216,10 @@ void LCD_calib1_Message(void){
 void LCD_calib1_complete_Message(void){
    canvas.setTextFont(2);
    canvas.setTextSize(1);
-   canvas.setTextColor(RED);
+   canvas.setTextColor(BLACK);
+
+    canvas.fillRoundRect(Middle_M_X-30, Middle_M_Y-3,
+      ABORT_M_W, ABORT_M_H, ABORT_M_R, WHITE);
 
    canvas.setCursor(Middle_M_X, Middle_M_Y);
    canvas.print("Stationary");
@@ -234,7 +237,10 @@ void LCD_calib1_complete_Message(void){
 void LCD_calib2_Message(void){
    canvas.setTextFont(2);
    canvas.setTextSize(1);
-   canvas.setTextColor(RED);
+   canvas.setTextColor(BLACK);
+
+   canvas.fillRoundRect(Middle_M_X-30, Middle_M_Y-3,
+     ABORT_M_W, ABORT_M_H, ABORT_M_R, WHITE);
 
    canvas.setCursor(Middle_M_X, Middle_M_Y);
    canvas.print("Executing");
@@ -728,6 +734,43 @@ void LCD_Western_Artificial_Horizion(){
     else{
         canvas.print(int(robot_Y_deg));
     }
+
+
+    canvas.setTextSize(1);
+    canvas.setTextFont(1);
+
+
+
+    if (isArmed){
+
+        canvas.fillRoundRect(AH_X+2, AH_Y+3, 18, 10, 4, BLACK);
+
+        canvas.setCursor(AH_X+4, AH_Y+5);
+        canvas.setTextColor(RED);
+        canvas.print("P");
+
+        canvas.setCursor(AH_X+8, AH_Y+5);
+        canvas.setTextColor(GREEN);
+        canvas.print("I");
+
+        canvas.setCursor(AH_X+13, AH_Y+5);
+        canvas.setTextColor(BLUE);
+        canvas.print("D");
+
+        if(!standing){
+            canvas.setTextColor(BLACK);
+            canvas.setCursor(AH_X+35, AH_Y+5);
+            canvas.print("ARMED");
+        }
+
+    }
+
+    else{
+        canvas.setTextColor(BLACK);
+        canvas.setCursor(AH_X+27, AH_Y+5);
+        canvas.print("DISARMED");
+    }
+
 
 }
 

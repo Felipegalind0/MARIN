@@ -11,13 +11,24 @@ void exec_RealTcode(){
     
     // Initialize web serial, I2C, LCD, speaker, microphone, and other systems
     SysInit_Setup();
-
-    // Initialize movement systems, motors, gyro, etc.
-    Movement_Setup();
+    
     return;
   }
 
-  else if (is_booted) { // If Device is booted, run the main code
+  else if (!IMU_has_been_init){
+    imuInit();
+
+    return;
+  }
+
+  else if (!IMU_has_been_calibrated){
+    
+    Movement_Setup();
+
+    return;
+  }
+
+  else if (is_booted && IMU_has_been_init && IMU_has_been_calibrated) { // If Device is booted, run the main code
     Movement_Loop(); // Call the movement loop for balancing and motion control
   }
 

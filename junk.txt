@@ -1,55 +1,6 @@
-I added 4 fillRoundRects yellow, blue, red, green 
-and I print int(Avg_IMU_Z_deg_per_sec), JoyC_X, robot_Y_deg, JoyC_Y.
-
-I want to change the static colors on the rectangles behind the text for dynamicaly calculated colors based on the values of the variables. 
-
-Here is what I want, keep the sizes and offsets for each rectangle/text pair,
-
-I want them in this order
-
-JoyC_X      int(Avg_IMU_Z_deg_per_sec)      JoyC_Y      int(robot_Y_deg)
-
-
-
-both JoyC_X JoyC_Y have ranges of 0-100
-
-
-int(Avg_IMU_Z_deg_per_sec) int(robot_Y_deg) both have ranges of +/-100
-
-I want the colors to smoothy transition between the 3 keypoints for each variable
-
-
-for JoyC_X:
-
-00: 255 0 0
-
-50: 255 255 0
-
-100: 0 0 255
-
-
-for int(Avg_IMU_Z_deg_per_sec)
-
-00: 255 0 0
-
-50: 255 255 0
-
-100: 0 0 255
-
-
-for JoyC_Y:
-
-00: 0 0 255
-
-50: 0 128 255
-
-100 0 255 0
-
-
-for int(robot_Y_deg)
-
-00: 255 0 0
-
-50: 0 0 255
-
-100: 0 255 0
+    TOP_SIDE_STATE,
+    BOTTOM_SIDE_STATE,
+    FRONT_SIDE_STATE,
+    BACK_SIDE_STATE,
+    BACK_LEFT_STATE,
+    BACK_RIGHT_STATE,

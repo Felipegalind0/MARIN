@@ -82,12 +82,22 @@ extern uint32_t time0, time1;
 extern int16_t counterOverPwr, maxOvp, maxAngle;
 extern float power, powerR, powerL, yawPower;
 extern float varAng, IMU_Y_deg_per_sec, IMU_Z_deg_per_sec, varSpd, varDst, varIang;
-extern float gyroXoffset, gyro_deg_per_sec_Y_offset, gyro_deg_per_sec_Z_offset, accXoffset;
+
+extern float gyroXoffset, gyro_deg_per_sec_Y_offset, gyro_deg_per_sec_Z_offset, accXoffset, accYoffset, accZoffset;
+
+extern boolean IMU_has_been_calibrated, IMU_has_been_init;
+
 extern float gyroXdata, gyro_Y_data, gyroZdata, IMU_X_acceleration, IMU_Y_acceleration, IMU_Z_acceleration;
 extern float Avg_IMU_X_deg_per_sec, Avg_IMU_Y_deg_per_sec, Avg_IMU_Z_deg_per_sec;
 extern float Avg_IMU_X_acceleration, Avg_IMU_Y_acceleration, Avg_IMU_Z_acceleration;
 extern float Avg_Robot_X_deg_per_sec, Avg_Robot_Y_deg_per_sec, Avg_Robot_Z_deg_per_sec;
 extern float robot_X_deg, robot_Y_deg, robot_Z_deg;
+
+extern float roll, pitch, yaw;
+
+extern float gX, gY, gZ, aX, aY, aZ;
+
+
 extern float cutoff;
 extern const float clk;
 extern const uint32_t interval;

@@ -12,6 +12,7 @@
 #include "IO.h"
 #include "variables.h"
 #include "FileSystem.h"
+#include "movement.h"
 
 
 void SysInit_Setup(void){
@@ -22,16 +23,14 @@ void SysInit_Setup(void){
 
     Serial.println("SysInit_Setup() running on cpu#" + String(xPortGetCoreID()));
 
-    fs_setup();
-
-
     //disableCore0WDT();
 
     
     Wire.begin(0, 26);  // SDA,SCL
 
     pinMode(LED, OUTPUT);
-    pinMode(SPEAKER, OUTPUT);
+    
+    Setup_Speaker();
 
     //ledcSetup(LED_CH, 5000, 8);
     ledcSetup(SPEAKER_CH, 5000, 8);
@@ -47,11 +46,30 @@ void SysInit_Setup(void){
     
     LCD_UI_Setup();
 
-    StartUp_Sound();
+    // Make backgroundCore Play the StartUp Sound in the background
+    xTaskCreatePinnedToCore(
+        StartUp_Sound,   /* Function to implement the task */
+        "StartUp_Sound", /* Name of the task */
+        10000,      /* Stack size in words */
+        NULL,       /* Task input parameter */
+        -2,          /* Priority of the task */
+        NULL,       /* Task handle. */
+    BackgroundCore);  /* Core where the task should run */
+
+    fs_setup();
 
     RED_LED(true);
     Wireless_Setup();
     RED_LED(false);
+
+    //Zero Motors
+    resetMotor();
+
+    // Reset to Default Parameters
+    resetPara();
+
+    //Zero Out Variables
+    resetVar();
     
     Serial.print("...");
 

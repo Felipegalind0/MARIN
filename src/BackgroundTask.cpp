@@ -5,6 +5,8 @@ void exec_BackgroundTask() {
   // Wait for the syncSemaphore to be given by the RealTcode task
   if (xSemaphoreTake(syncSemaphore, portMAX_DELAY) == pdTRUE) {
 
+
+
     // 
     if ((counter % btnCounter) == 0) {
       CheckButtons();
@@ -18,8 +20,31 @@ void exec_BackgroundTask() {
       }
     }
 
+    M5.update();
+
     // Update the LCD display
     LCD_loop();
+    
+
+    // M5.BtnA.read();
+    // M5.BtnB.read();
+
+    if(M5.BtnA.wasPressed()){
+      Serial.println("Button A was pressed");
+      Abtn = 1;
+      isArmed = !isArmed;
+    }
+    else {
+      Abtn = 0;
+    }
+
+    if(M5.BtnB.wasPressed()){
+      Serial.println("Button B was pressed");
+      Bbtn = 1;
+    }
+    else {
+      Bbtn = 0;
+    }
   }
 }
 
@@ -71,3 +96,10 @@ void BackgroundTask( void * pvParameters ) {
     vTaskDelay(pdMS_TO_TICKS(interval)); // Delay the task for a specific interval (in milliseconds) to control execution frequency  
   }
 }
+
+
+
+
+
+
+

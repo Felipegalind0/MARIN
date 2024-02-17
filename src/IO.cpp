@@ -11,10 +11,9 @@ void RED_LED(bool state){
 void CheckButtons() {
     byte pbtn = M5.Axp.GetBtnPress();
     //byte Abtn = 
-    M5.BtnA.read();
-    M5.BtnB.read();
-    Abtn = (M5.BtnA.wasPressed());
-    Bbtn = (M5.BtnB.wasPressed());
+
+    // Abtn = (M5.BtnA.wasPressed());
+    // Bbtn = (M5.BtnB.wasPressed());
 
     if (pbtn == 2){
 
@@ -29,13 +28,13 @@ void CheckButtons() {
     //     setMode(true);  // long push
     // }
 
-    if (Abtn){
-      Serial.println("A Button Pressed");
-    }
+    // if (Abtn){
+    //   Serial.println("A Button Pressed");
+    // }
 
-    if (Bbtn){
-      Serial.println("B Button Pressed");
-    }
+    // if (Bbtn){
+    //   Serial.println("B Button Pressed");
+    // }
 
 }
 

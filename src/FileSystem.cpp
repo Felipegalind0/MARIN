@@ -196,7 +196,7 @@ void testFileIO(fs::FS &fs, const char * path){
 
 void fs_setup(){
 
-    vTaskDelay(4000);
+    //vTaskDelay(4000);
 
     deleteFile(LittleFS, "/robot_config/robot_config.txt");
 
@@ -214,14 +214,15 @@ void fs_setup(){
 
 
 
-    listDir(LittleFS, "/", 2); // List the root directory
+    listDir(LittleFS, "/", 2); // List the root directory up to 2 levels
 
-    createDir(LittleFS, "/robot_config"); // Create a robot_config folder
 
-    writeFile(LittleFS, "/robot_config/robot_config.txt", "Robot Configuration File"); // Create and write a new file in the robot_config folder
+    //createDir(LittleFS, "/robot_config"); // Create a robot_config folder
+
+    //writeFile(LittleFS, "/robot_config/robot_config.txt", "Robot Configuration File"); // Create and write a new file in the robot_config folder
 
     // createDir(LittleFS, "/mydir"); // Create a mydir folder
-     writeFile(LittleFS, "/mydir/hello1.txt", "Hello1"); // Create a hello1.txt file with the content "Hello1"
+    // writeFile(LittleFS, "/mydir/hello1.txt", "Hello1"); // Create a hello1.txt file with the content "Hello1"
     // listDir(LittleFS, "/", 1); // List the directories up to one level beginning at the root directory
     // deleteFile(LittleFS, "/mydir/hello1.txt"); //delete the previously created file
     // removeDir(LittleFS, "/mydir"); //delete the previously created folder
