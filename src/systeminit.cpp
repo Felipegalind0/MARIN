@@ -32,10 +32,7 @@ void SysInit_Setup(void){
     
     Setup_Speaker();
 
-    //ledcSetup(LED_CH, 5000, 8);
-    ledcSetup(SPEAKER_CH, 5000, 8);
-    //ledcAttachPin(LED, LED_CH);
-    ledcAttachPin(SPEAKER, SPEAKER_CH);
+
     
     RED_LED(true);
     Serial.println("");

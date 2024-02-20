@@ -18,33 +18,33 @@ void serial_Init() {
 
 // void logData() {
 //   yield();
-//   Serial.print(gyroXdata);
+//   Serial.print(IMU_RAW_X_dps);
 //   Serial.print(",");
-//   Serial.print(gyro_Y_data);
+//   Serial.print(IMU_RAW_Y_dps);
 //   Serial.print(",");
-//   Serial.print(gyroZdata);
+//   Serial.print(IMU_RAW_Z_dps);
 //   Serial.print(",");
-//   Serial.print(IMU_X_acceleration);
+//   Serial.print(IMU_RAW_X_Gs);
 //   Serial.print(",");
-//   Serial.print(IMU_Y_acceleration);
+//   Serial.print(IMU_RAW_Y_Gs);
 //   Serial.print(",");
-//   Serial.println(IMU_Z_acceleration);
+//   Serial.println(IMU_RAW_Z_Gs);
 //   yield();
 // }
 
 void logData() {
   yield();
-  Serial2.print(gyroXdata);
+  Serial2.print(IMU_RAW_X_dps);
   Serial2.print(",");
-  Serial2.print(gyro_Y_data);
+  Serial2.print(IMU_RAW_Y_dps);
   Serial2.print(",");
-  Serial2.print(gyroZdata);
+  Serial2.print(IMU_RAW_Z_dps);
   Serial2.print(",");
-  Serial2.print(IMU_X_acceleration);
+  Serial2.print(IMU_RAW_X_Gs);
   Serial2.print(",");
-  Serial2.print(IMU_Y_acceleration);
+  Serial2.print(IMU_RAW_Y_Gs);
   Serial2.print(",");
-  Serial2.println(IMU_Z_acceleration);
+  Serial2.println(IMU_RAW_Z_Gs);
   yield();
 }
 

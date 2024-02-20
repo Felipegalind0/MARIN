@@ -3,6 +3,11 @@
 
 #include "movement.h"
 
+#include "SensorFusion.h"
+
+SF fusion;
+
+
 
 //#include <WebSerial.h>
 
@@ -154,7 +159,7 @@ void Movement_Loop() {
 
             // 0.9*90= 72
             //if Pointed 72 deg up 
-            if (abs(Avg_IMU_Z_acceleration) > 0.9 && abs(Avg_Robot_Z_deg_per_sec) < 1.5) {
+            if (abs(Avg_IMU_Z_Gs) > 0.9 && abs(Avg_Robot_Z_deg_per_sec) < 1.5) {
 
                 // Run Second Calibration
                 LCD_calib2_Message();
@@ -259,9 +264,9 @@ void Abort(String MSG){
 //     gyro_deg_per_sec_Y_offset = 0.0;
 
 //     for (int i = 0; i < N_CAL1; i++) {
-//         readGyro();
-//         gyro_deg_per_sec_Y_offset += gyro_Y_data;
-//         update_exec_status("g_Y = " + String(gyro_Y_data));
+//         readRAWGyro();
+//         gyro_deg_per_sec_Y_offset += IMU_RAW_Y_dps;
+//         update_exec_status("g_Y = " + String(IMU_RAW_Y_dps));
 //         LCD_Status_Message();
 //         vTaskDelay(9);
 //     }
@@ -289,9 +294,9 @@ void Abort(String MSG){
 //     accXoffset  = 0.0;
 //     gyro_deg_per_sec_Z_offset = 0.0;
 //     for (int i = 0; i < N_CAL2; i++) {
-//         readGyro();
-//         accXoffset += IMU_X_acceleration;
-//         gyro_deg_per_sec_Z_offset += gyroZdata;
+//         readRAWGyro();
+//         accXoffset += IMU_RAW_X_Gs;
+//         gyro_deg_per_sec_Z_offset += IMU_RAW_Z_dps;
 //         vTaskDelay(9);
 //     }
 //     accXoffset /= (float)N_CAL2;
@@ -304,7 +309,7 @@ void Abort(String MSG){
 
 // void calDelay(int n) {
 //     for (int i = 0; i < n; i++) {
-//         readGyro();
+//         readRAWGyro();
 //         vTaskDelay(9);
 //     }
 // }
@@ -315,23 +320,26 @@ void Abort(String MSG){
 //     spinStep       = -40.0 * clk;
 // }
 
+float deltat;
 
 
 void getGyro() {
-    readGyro();
-    IMU_Y_deg_per_sec = (gyro_Y_data - gyro_deg_per_sec_Y_offset);// unit:deg/sec
-    IMU_Z_deg_per_sec = gyroZdata - gyro_deg_per_sec_Z_offset; // unit:deg/sec
+    readRAWGyro();
+    IMU_X_deg_per_sec = IMU_RAW_X_dps - gyro_deg_per_sec_X_offset; // unit:deg/sec
+    IMU_Y_deg_per_sec = IMU_RAW_Y_dps - gyro_deg_per_sec_Y_offset;// unit:deg/sec
+    IMU_Z_deg_per_sec = IMU_RAW_Z_dps - gyro_deg_per_sec_Z_offset; // unit:deg/sec
 
+    Avg_IMU_X_deg_per_sec = Avg_IMU_X_deg_per_sec * 0.9 + IMU_X_deg_per_sec * 0.1;  // update average y angular velocity
     Avg_IMU_Y_deg_per_sec = Avg_IMU_Y_deg_per_sec * 0.9 + IMU_Y_deg_per_sec * 0.1;  // update average y angular velocity
     Avg_IMU_Z_deg_per_sec = Avg_IMU_Z_deg_per_sec * 0.9 + IMU_Z_deg_per_sec * 0.1;  // update average z angular velocity
 
-    Avg_IMU_X_acceleration   = Avg_IMU_X_acceleration * 0.9 + IMU_X_acceleration * 0.1;  // update average x acceleration
-    Avg_IMU_Y_acceleration   = Avg_IMU_Y_acceleration * 0.9 + IMU_Y_acceleration * 0.1;  // update average y acceleration 
-    Avg_IMU_Z_acceleration   = Avg_IMU_Z_acceleration * 0.9 + IMU_Z_acceleration * 0.1;  // update average z acceleration
+    Avg_IMU_X_Gs   = Avg_IMU_X_Gs * 0.9 + IMU_RAW_X_Gs * 0.1;  // update average x acceleration
+    Avg_IMU_Y_Gs   = Avg_IMU_Y_Gs * 0.9 + IMU_RAW_Y_Gs * 0.1;  // update average y acceleration 
+    Avg_IMU_Z_Gs   = Avg_IMU_Z_Gs * 0.9 + IMU_RAW_Z_Gs * 0.1;  // update average z acceleration
 
 
     //calculate the x, y, z angles
-    robot_Y_deg = (((Avg_IMU_X_acceleration) ? -1 : 1) * 90 * Avg_IMU_X_acceleration);  // unit:deg
+    robot_Y_deg = (((Avg_IMU_X_Gs) ? -1 : 1) * 90 * Avg_IMU_X_Gs);  // unit:deg
 
     yawAngle += IMU_Z_deg_per_sec * clk;  // unit:deg
 
@@ -339,70 +347,131 @@ void getGyro() {
     heading = (byte)(round(yawAngle));
 
 
-    varAng += (IMU_Y_deg_per_sec + ((IMU_X_acceleration - accXoffset) * 57.3 - varAng) * cutoff) *
+    varAng += (IMU_Y_deg_per_sec + ((IMU_RAW_X_Gs - accXoffset) * 57.3 - varAng) * cutoff) *
               clk;  // complementary filter
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // // Convert gyroscope data from degrees per second to radians per second
+    //   gX = gX * PI / 180.0;
+    //   gY = gY * PI / 180.0;
+    //   gZ = gZ * PI / 180.0;
+
+        // // Convert gyro data from degrees per second to radians per second
+        // gX = gX * RAD_TO_DEG;
+        // gY = gY * RAD_TO_DEG;
+        // gZ = gZ * RAD_TO_DEG;
+
+    //BAD, need to print constant length strings otherwise it is impossible to read
+    //Serial.println("gX: " + String(gX) + " gY: " + String(gY) + " gZ: " + String(gZ) + " aX: " + String(aX) + " aY: " + String(aY) + " aZ: " + String(aZ));
+
+        // Fixed, using ranges: (+/-)XXX for gX and gY, +/-(XX) for aX, aY, and aZ
+
+        // char print_buffer[100];
+
+        // //String print_buffer;
+
+        // sprintf(print_buffer, "gX: %04d gY: %04d gZ: %04d aX: %02.02f aY: %02.02f aZ: %02.02f", (int)gX, (int)gY, (int)gZ, aX, aY, aZ);
+
+        //Serial.println(print_buffer);
+
+
+    // filter.updateIMU(gX, gY, gZ, aX, aY, aZ);
+
+    // // Get the roll, pitch, and yaw from the filter
+    //   roll = filter.getRoll();
+    //   pitch = filter.getPitch();
+    //   yaw = filter.getYaw();
+
+    // Serial.println("R: " + String(roll) + " P: " + String(pitch) + " Y: " + String(yaw));
+
+    #define RAW_DATA 1
+
+    #if RAW_DATA
+    // Serial << "From last Update:\t"; Serial.println(deltat, 6);
+    // Serial << "GYRO:\tx:" << gX << "\t\ty:" << gY << "\t\tz:" << gZ << '\n';
+    // Serial << "ACC:\tx:" << aX << "\t\ty:" << aY << "\t\tz:" << aZ << '\n';
+    // Serial << "MAG:\tx:" << mX << "\t\ty:" << mY << "\t\tz:" << mZ << '\n';
+    //Serial << "TEMP:\t" << temp << newl << newl;
+    #endif
+
+    deltat = fusion.deltatUpdate();
+    //fusion.MahonyUpdate(gx, gy, gz, ax, ay, az, mx, my, mz, deltat);  //mahony is suggested if there isn't the mag
+    fusion.MadgwickUpdate(gX, gY, gZ, aX, aY, aZ, deltat);  //else use the magwick
+
+    roll = fusion.getRoll();
+    pitch = fusion.getPitch();
+    yaw = fusion.getYaw();
+
+    #define EULER_DATA 0
+
+    #if EULER_DATA
+    Serial << "Pitch:\t" << pitch << "\t\tRoll:\t" << roll << "\t\tYaw:\t" << yaw << newl << newl;
+    #endif
+
+    #define PROCESSING 0
+
+    #if PROCESSING
+    roll = fusion.getRollRadians();
+    pitch = fusion.getPitchRadians();
+    yaw = fusion.getYawRadians();
+    Serial  << pitch << ":" << roll << ":" << yaw << newl;
+    #endif
+
+
+    #define SERIAL_PLOTER 1
+
+    // #ifdef SERIAL_PLOTER
+    // Serial << String(pitch) << " " << String(roll) << " " << String(yaw) << endl;
+    // #endif
+
+
+    //Serial.println("Pitch: " + String(pitch) + " Roll: " + String(roll) + " Yaw: " + String(yaw));
+
+
+
+
 }
 
-void readGyro() {
-  // Declare variables for gyro and accelerometer data
-  //read the MPU6886
-
-  // Get the gyro data for the X, Y, and Z axes
-  M5.Imu.getGyroData(&gX, &gY, &gZ);
-
-  // Get the accelerometer data for the X, Y, and Z axes
-  M5.Imu.getAccelData(&aX, &aY, &aZ);
-
-
-// // Convert gyroscope data from degrees per second to radians per second
-//   gX = gX * PI / 180.0;
-//   gY = gY * PI / 180.0;
-//   gZ = gZ * PI / 180.0;
-
-    // // Convert gyro data from degrees per second to radians per second
-    // gX = gX * RAD_TO_DEG;
-    // gY = gY * RAD_TO_DEG;
-    // gZ = gZ * RAD_TO_DEG;
-
-//BAD, need to print constant length strings otherwise it is impossible to read
-  //Serial.println("gX: " + String(gX) + " gY: " + String(gY) + " gZ: " + String(gZ) + " aX: " + String(aX) + " aY: " + String(aY) + " aZ: " + String(aZ));
-
-    // Fixed, using ranges: (+/-)XXX for gX and gY, +/-(XX) for aX, aY, and aZ
-
-    char print_buffer[100];
-
-    //String print_buffer;
-
-    sprintf(print_buffer, "gX: %04d gY: %04d gZ: %04d aX: %02.02f aY: %02.02f aZ: %02.02f", (int)gX, (int)gY, (int)gZ, aX, aY, aZ);
-
-    //Serial.println(print_buffer);
-
-
-  //filter.updateIMU(gX, gY, gZ, aX, aY, aZ);
-
-  // Get the roll, pitch, and yaw from the filter
-//   roll = filter.getRoll();
-//   pitch = filter.getPitch();
-//   yaw = filter.getYaw();
-
-  //Serial.println("R: " + String(roll) + " P: " + String(pitch) + " Y: " + String(yaw));
-
-  
-
-  // Assign the gyro data to the corresponding global variables
-  // (Note the sign changes to match the robot's coordinate system)
-  gyro_Y_data = gX;  // y = x
-  gyroZdata = -gY; // z = -y
-  gyroXdata = -gZ; // x = -z
-
-  // Assign the accelerometer data to the corresponding global variables
-  // (Note the change in variable usage for aX)
-  IMU_X_acceleration = aZ; // x = z
-  IMU_Y_acceleration = aX; // y = x
-  IMU_Z_acceleration = aY; // z = y
 
 
 
+
+
+
+void readRAWGyro() {
+    // Declare variables for gyro and accelerometer data
+    //read the MPU6886
+
+    // Get the gyro data for the X, Y, and Z axes
+    M5.Imu.getGyroData(&gX, &gY, &gZ);
+
+    // Get the accelerometer data for the X, Y, and Z axes
+    M5.Imu.getAccelData(&aX, &aY, &aZ);
+
+
+      // Assign the gyro data to the corresponding global variables
+    // (Note the sign changes to match the robot's coordinate system)
+    IMU_RAW_Y_dps = gX;  // y = x
+    IMU_RAW_Z_dps = -gY; // z = -y
+    IMU_RAW_X_dps = -gZ; // x = -z
+
+    // Assign the accelerometer data to the corresponding global variables
+    // (Note the change in variable usage for aX)
+    IMU_RAW_X_Gs = aZ; // x = z
+    IMU_RAW_Y_Gs = aX; // y = x
+    IMU_RAW_Z_Gs = aY; // z = y
 }
 
 
@@ -542,112 +611,175 @@ int reading_buff_index = calibData.currentReadingIndex % BUFFER_SIZE;
 //CalibrationData calibData;
 
 # define DEBUG_calcRobotAlignment 0
+# define RobotAlignmentPreActicationThreshold 0.85
 # define RobotAlignmentActicationThreshold 0.9
 # define RobotAlignmentDeactivationThreshold 0.1
+# define RobotAlignmentPreDeactivationThreshold 0.2
 
+float speaker_offset = 0;
 
-void updateRobotOrientation(Robot_Side side, String sideString) {
+void updateRobotOrientation(Robot_Side side, String sideString, bool isAtCenter, float Gs){
 
         if (side == ROBOT_UNKNOWN_SIDE) {
             RED_LED(0);
             ledcWriteTone(SPEAKER_CH,0);
         }else if(calibData.sideCalibrated[side] == false){
-            RED_LED(1);
-            ledcWriteTone(SPEAKER_CH,1000);
+
+            float speaker_offset = ((Gs - RobotAlignmentActicationThreshold) * 50000)*0.1 + 0.9*speaker_offset;
+            Serial.print("Speaker offset: ");
+            Serial.println(speaker_offset);
+
+            ledcWriteTone(SPEAKER_CH,2000 + (int)(speaker_offset));
+            
+            M5.Beep.setVolume(10);
+            if (isAtCenter){
+                //ledcWriteTone(SPEAKER_CH,1000);
+                RED_LED(1);
+
+            }
+            else {
+                //ledcWriteTone(SPEAKER_CH,500);
+                RED_LED(0);
+            }
+            
         }
 
+        if (isAtCenter){
+            currentSide = side;
+            calibData.orientation_history[reading_buff_index] = side;
+        }
+        else{
+            currentSide = ROBOT_UNKNOWN_SIDE;
+            calibData.orientation_history[reading_buff_index] = ROBOT_UNKNOWN_SIDE;
+        }
 
-
-        currentSide = side;
-        calibData.orientation_history[reading_buff_index] = side;
         #if DEBUG_calcRobotAlignment
-        Serial.println("Robot is pointed " + sideString);
+
+        //vTaskDelay(100);
+
+        Serial.println("IMU: X:" + String(IMU_RAW_X_Gs) + "  Y:" + String(IMU_RAW_Y_Gs) + " Z:" + String(IMU_RAW_Z_Gs) + "Robot is pointed " + sideString + " side" + " isAtCenter: " + String(isAtCenter));
         #endif
 }
 
-// Checks IMU_X_acceleration, IMU_Y_acceleration, IMU_Z_acceleration to determine the robot's alignment
+
+// Checks IMU_RAW_X_Gs, IMU_RAW_Y_Gs, IMU_RAW_Z_Gs to determine the robot's alignment
 void calculateRobotAlignment(){
-    
-    // #if DEBUG_calcRobotAlignment
-    // Serial.println("@calculateRobotAlignment");
-    // #endif
 
-    //Pointed up
-    if (IMU_X_acceleration > RobotAlignmentActicationThreshold && 
-    abs(IMU_Y_acceleration) < RobotAlignmentDeactivationThreshold && 
-    abs(IMU_Z_acceleration) < RobotAlignmentDeactivationThreshold) {
+    //Pointed front / back
+    if (abs(IMU_RAW_X_Gs) > RobotAlignmentActicationThreshold && 
+        abs(IMU_RAW_Y_Gs) < RobotAlignmentDeactivationThreshold && 
+        abs(IMU_RAW_Z_Gs) < RobotAlignmentDeactivationThreshold) {
 
-        updateRobotOrientation(ROBOT_BACK_SIDE, "back");
-
-    }
-
-    
-    //Pointed down
-    else if (IMU_X_acceleration < -RobotAlignmentActicationThreshold &&
-    abs(IMU_Y_acceleration) < RobotAlignmentDeactivationThreshold &&
-    abs(IMU_Z_acceleration) < RobotAlignmentDeactivationThreshold) {
-
-        updateRobotOrientation(ROBOT_FRONT_SIDE, "front");
+        // determine front or back
+        if (IMU_RAW_X_Gs > 0) {
+            // updateRobotOrientation(ROBOT_FRONT_SIDE, "front", true);
+            updateRobotOrientation(ROBOT_BACK_SIDE, "back", true, abs(Avg_IMU_X_Gs));
+        } else {
+            // updateRobotOrientation(ROBOT_BACK_SIDE, "back", true);
+            updateRobotOrientation(ROBOT_FRONT_SIDE, "front", true, abs(Avg_IMU_X_Gs));
+        }
 
     }
 
-    //Pointed front
-    else if (IMU_Y_acceleration > RobotAlignmentActicationThreshold &&
-    abs(IMU_X_acceleration) < RobotAlignmentDeactivationThreshold &&
-    abs(IMU_Z_acceleration) < RobotAlignmentDeactivationThreshold) {
+    
+
+    //Pointed left / right
+    else if (abs(IMU_RAW_Y_Gs) > RobotAlignmentActicationThreshold &&
+             abs(IMU_RAW_X_Gs) < RobotAlignmentDeactivationThreshold &&
+             abs(IMU_RAW_Z_Gs) < RobotAlignmentDeactivationThreshold) {
         
-        updateRobotOrientation(ROBOT_LEFT_SIDE, "left");
+        // determine left or right
+        if (IMU_RAW_Y_Gs > 0) {
+            updateRobotOrientation(ROBOT_LEFT_SIDE, "left", true, abs(IMU_RAW_Y_Gs));
+        } else {
+            updateRobotOrientation(ROBOT_RIGHT_SIDE, "right", true, abs(IMU_RAW_Y_Gs));
+        }
 
     }
 
-    //Pointed back
-    else if (IMU_Y_acceleration < -RobotAlignmentActicationThreshold &&
-    abs(IMU_X_acceleration) < RobotAlignmentDeactivationThreshold &&
-    abs(IMU_Z_acceleration) < RobotAlignmentDeactivationThreshold) {
 
-        updateRobotOrientation(ROBOT_RIGHT_SIDE, "right");
+    //Pointed up / down
+    else if (abs(IMU_RAW_Z_Gs) > RobotAlignmentActicationThreshold   &&
+             abs(IMU_RAW_X_Gs) < RobotAlignmentDeactivationThreshold &&
+             abs(IMU_RAW_Y_Gs) < RobotAlignmentDeactivationThreshold) {
+        
+        if (IMU_RAW_Z_Gs < 0) {
+            updateRobotOrientation(ROBOT_TOP_SIDE, "up", true, abs(IMU_RAW_Z_Gs));
+        } else {
+            updateRobotOrientation(ROBOT_BOTTOM_SIDE, "down", true, abs(IMU_RAW_Z_Gs));
+        }
 
     }
 
-    //Pointed left
-    else if (IMU_Z_acceleration > RobotAlignmentActicationThreshold &&
-    abs(IMU_X_acceleration) < RobotAlignmentDeactivationThreshold &&
-    abs(IMU_Y_acceleration) < RobotAlignmentDeactivationThreshold) {
 
-        updateRobotOrientation(ROBOT_BOTTOM_SIDE, "down");
+
+
+    
+    //Pointed front / back
+    else if (abs(IMU_RAW_X_Gs) > RobotAlignmentPreActicationThreshold &&
+             abs(IMU_RAW_Y_Gs) < RobotAlignmentPreDeactivationThreshold &&
+             abs(IMU_RAW_Z_Gs) < RobotAlignmentPreDeactivationThreshold) {
+
+// determine front or back
+        if (IMU_RAW_X_Gs > 0) {
+            updateRobotOrientation(ROBOT_BACK_SIDE, "back", false, abs(Avg_IMU_X_Gs));
+        } else {
+            updateRobotOrientation(ROBOT_FRONT_SIDE, "front", false, abs(Avg_IMU_X_Gs));
+        }
+
+    }
+
+    // }
+
+    //Pointed left / right
+    else if (abs(IMU_RAW_Y_Gs) > RobotAlignmentPreActicationThreshold &&
+             abs(IMU_RAW_X_Gs) < RobotAlignmentPreDeactivationThreshold &&
+             abs(IMU_RAW_Z_Gs) < RobotAlignmentPreDeactivationThreshold) {
+        
+        // determine left or right
+        if (IMU_RAW_Y_Gs > 0) {
+            updateRobotOrientation(ROBOT_LEFT_SIDE, "left", false, abs(Avg_IMU_Y_Gs));
+        } else {
+            updateRobotOrientation(ROBOT_RIGHT_SIDE, "right", false, abs(Avg_IMU_Y_Gs));
+        }
+
     }
 
 
-    //Pointed right
-    else if (IMU_Z_acceleration < -RobotAlignmentActicationThreshold &&
-    abs(IMU_X_acceleration) < RobotAlignmentDeactivationThreshold &&
-    abs(IMU_Y_acceleration) < RobotAlignmentDeactivationThreshold) {
+    //Pointed up / down
+    else if (abs(IMU_RAW_Z_Gs) > RobotAlignmentPreActicationThreshold &&
+             abs(IMU_RAW_X_Gs) < RobotAlignmentPreDeactivationThreshold &&
+             abs(IMU_RAW_Y_Gs) < RobotAlignmentPreDeactivationThreshold) {
 
-        updateRobotOrientation(ROBOT_TOP_SIDE, "up");
+        if (IMU_RAW_Z_Gs < 0) {
+            updateRobotOrientation(ROBOT_TOP_SIDE, "up", false, abs(Avg_IMU_Z_Gs));
+        } else {
+            updateRobotOrientation(ROBOT_BOTTOM_SIDE, "down", false, abs(Avg_IMU_Z_Gs));
+        }
     }
+
 
     else {
-        updateRobotOrientation(ROBOT_UNKNOWN_SIDE, "unknown");
+        updateRobotOrientation(ROBOT_UNKNOWN_SIDE, "unknown", false, 0);
     }
 
-
-
-
-
-
 }
+
+
 
 
 void addIMUReadingsToBuffer(){
 
-    // Add the current IMU readings to the buffer
-    calibData.readings[reading_buff_index][0] = gX;
-    calibData.readings[reading_buff_index][1] = gY;
-    calibData.readings[reading_buff_index][2] = gZ;
 
-    calibData.readings[reading_buff_index][3] = aX;
-    calibData.readings[reading_buff_index][4] = aY;
-    calibData.readings[reading_buff_index][5] = aZ;
+
+    calibData.readings[reading_buff_index][0] = IMU_RAW_X_dps;
+    calibData.readings[reading_buff_index][1] = IMU_RAW_Y_dps;
+    calibData.readings[reading_buff_index][2] = IMU_RAW_Z_dps;
+
+    calibData.readings[reading_buff_index][3] = IMU_RAW_X_Gs;
+    calibData.readings[reading_buff_index][4] = IMU_RAW_Y_Gs;
+    calibData.readings[reading_buff_index][5] = IMU_RAW_Z_Gs;
+
 
     // Increment the current reading index
     calibData.currentReadingIndex++; 
@@ -897,7 +1029,7 @@ boolean robotHasBeenAlignedWithAxisForLongerThanThreshold(){
 
 
 
-
+# define DEBUG_CalculateOffsetsAndScalingFactors 1
 
 void calculateOffsetsAndScalingFactors() {
 
@@ -946,19 +1078,25 @@ void calculateOffsetsAndScalingFactors() {
     //         0.16 * (calibData.Means[ROBOT_TOP_SIDE][2] + calibData.Means[ROBOT_BOTTOM_SIDE][2]) )
     // };
 
-        float gyroOffsets[3] = {
-        (  (calibData.Means[ROBOT_FRONT_SIDE][0] + calibData.Means[ROBOT_BACK_SIDE][0] +
-            calibData.Means[ROBOT_LEFT_SIDE][0] + calibData.Means[ROBOT_RIGHT_SIDE][0] +
-            calibData.Means[ROBOT_TOP_SIDE][0] + calibData.Means[ROBOT_BOTTOM_SIDE][0])/ 6),
+        gyro_deg_per_sec_X_offset = (calibData.Means[ROBOT_FRONT_SIDE][0] + calibData.Means[ROBOT_BACK_SIDE][0] +
+                                     calibData.Means[ROBOT_LEFT_SIDE][0] + calibData.Means[ROBOT_RIGHT_SIDE][0] +
+                                     calibData.Means[ROBOT_TOP_SIDE][0] + calibData.Means[ROBOT_BOTTOM_SIDE][0])/ 6;
 
-        (  (calibData.Means[ROBOT_FRONT_SIDE][1] + calibData.Means[ROBOT_BACK_SIDE][1] +
-            calibData.Means[ROBOT_LEFT_SIDE][1] + calibData.Means[ROBOT_RIGHT_SIDE][1] +
-            calibData.Means[ROBOT_TOP_SIDE][1] + calibData.Means[ROBOT_BOTTOM_SIDE][1])/ 6),
+        gyro_deg_per_sec_Y_offset = (calibData.Means[ROBOT_FRONT_SIDE][1] + calibData.Means[ROBOT_BACK_SIDE][1] +
+                                     calibData.Means[ROBOT_LEFT_SIDE][1] + calibData.Means[ROBOT_RIGHT_SIDE][1] +
+                                     calibData.Means[ROBOT_TOP_SIDE][1] + calibData.Means[ROBOT_BOTTOM_SIDE][1])/ 6;
 
-        (  (calibData.Means[ROBOT_FRONT_SIDE][2] + calibData.Means[ROBOT_BACK_SIDE][2] +
-            calibData.Means[ROBOT_LEFT_SIDE][2] + calibData.Means[ROBOT_RIGHT_SIDE][2] +
-            calibData.Means[ROBOT_TOP_SIDE][2] + calibData.Means[ROBOT_BOTTOM_SIDE][2])/ 6)
-    };
+        gyro_deg_per_sec_Z_offset = (calibData.Means[ROBOT_FRONT_SIDE][2] + calibData.Means[ROBOT_BACK_SIDE][2] +
+                                     calibData.Means[ROBOT_LEFT_SIDE][2] + calibData.Means[ROBOT_RIGHT_SIDE][2] +
+                                     calibData.Means[ROBOT_TOP_SIDE][2] + calibData.Means[ROBOT_BOTTOM_SIDE][2])/ 6;
+
+    //     float gyroOffsets[3] = {
+    //     (  ,
+
+    //     (  ,
+
+    //     (  
+    // };
 
     // Accelerometer offsets for X and Y are the averages of the means for opposing sides
     // For Z, it's the average adjusted for gravity
@@ -1034,23 +1172,17 @@ void calculateOffsetsAndScalingFactors() {
     //     ((1.0 / abs(calibData.Means[ROBOT_TOP_SIDE][5]   - accelOffsets[2])) + (1.0 / abs(calibData.Means[ROBOT_BOTTOM_SIDE][5] - accelOffsets[2])) / 2)
     // };
 
-    // Serial.println(" ((1.0 / abs(calibData.Means[ROBOT_LEFT_SIDE][3]  - accelOffsets[0])) + (1.0 / abs(calibData.Means[ROBOT_RIGHT_SIDE][3] - accelOffsets[0])) / 2) = ");
-    // Serial.println(" ((1.0 / abs("+ String(calibData.Means[ROBOT_LEFT_SIDE][3]) + " - " + String(accelOffsets[0]) + ")) + (1.0 / abs("+ String(calibData.Means[ROBOT_RIGHT_SIDE][3]) + " - " + String(accelOffsets[0]) + ")) / 2) = " + 
-    // String((1.0 / abs(calibData.Means[ROBOT_LEFT_SIDE][3]  - accelOffsets[0])) + (1.0 / abs(calibData.Means[ROBOT_RIGHT_SIDE][3] - accelOffsets[0])) / 2) + " =");
-    // Serial.println(" ((" + String(1.0 / abs(calibData.Means[ROBOT_LEFT_SIDE][3]  - accelOffsets[0])) + ") + (" + String(1.0 / abs(calibData.Means[ROBOT_RIGHT_SIDE][3] - accelOffsets[0])) + ") / 2)" );
 
 
+    Serial.println(String(calibData.Means[ROBOT_FRONT_SIDE][3]) +  " - " + String(accelOffsets[0]));
 
-
-
-
-    // Serial.println(String(0.5 / abs(calibData.Means[ROBOT_LEFT_SIDE][3]  - accelOffsets[0])) + " + " + String(0.5 / abs(calibData.Means[ROBOT_RIGHT_SIDE][3] - accelOffsets[0])) + " = " + String((0.5 / abs(calibData.Means[ROBOT_LEFT_SIDE][3]  - accelOffsets[0])) + (0.5 / abs(calibData.Means[ROBOT_RIGHT_SIDE][3] - accelOffsets[0]))));
+    Serial.println(String(0.5 / abs(calibData.Means[ROBOT_FRONT_SIDE][3]  - accelOffsets[0])) + " + " + String(0.5 / abs(calibData.Means[ROBOT_BACK_SIDE][3] - accelOffsets[0])) + " = " + String((0.5 / abs(calibData.Means[ROBOT_LEFT_SIDE][3]  - accelOffsets[0])) + (0.5 / abs(calibData.Means[ROBOT_RIGHT_SIDE][3] - accelOffsets[0]))));
 
     float accelScaleFactors[3] = {
 
-        ((0.5 / abs(calibData.Means[ROBOT_LEFT_SIDE][3]  - accelOffsets[0])) + (0.5 / abs(calibData.Means[ROBOT_RIGHT_SIDE][3] -  accelOffsets[0]))),
-        ((0.5 / abs(calibData.Means[ROBOT_TOP_SIDE][4]   - accelOffsets[1])) + (0.5 / abs(calibData.Means[ROBOT_BOTTOM_SIDE][4] - accelOffsets[1]))),
-        ((0.5 / abs(calibData.Means[ROBOT_FRONT_SIDE][5] - accelOffsets[2])) + (0.5 / abs(calibData.Means[ROBOT_BACK_SIDE][5] -   accelOffsets[2])))
+        ((0.5 / abs(calibData.Means[ROBOT_FRONT_SIDE][3]  - accelOffsets[0])) + (0.5 / abs(calibData.Means[ROBOT_BACK_SIDE][3] -  accelOffsets[0]))),
+        ((0.5 / abs(calibData.Means[ROBOT_LEFT_SIDE][4]   - accelOffsets[1])) + (0.5 / abs(calibData.Means[ROBOT_RIGHT_SIDE][4] - accelOffsets[1]))),
+        ((0.5 / abs(calibData.Means[ROBOT_TOP_SIDE][5] - accelOffsets[2])) + (0.5 / abs(calibData.Means[ROBOT_BOTTOM_SIDE][5] -   accelOffsets[2])))
         
     };
     
@@ -1064,12 +1196,12 @@ void calculateOffsetsAndScalingFactors() {
 
 
 
-
+    #if DEBUG_CalculateOffsetsAndScalingFactors
     // Printing the calculated offsets and scaling factors
     Serial.println("Calibration complete. Calculated Offsets and Scaling Factors:");
-    Serial.print("Gyro Offsets: X: "); Serial.print(gyroOffsets[0]);
-    Serial.print(", Y: "); Serial.print(gyroOffsets[1]);
-    Serial.print(", Z: "); Serial.println(gyroOffsets[2]);
+    Serial.print("Gyro Offsets: X: "); Serial.print(gyro_deg_per_sec_X_offset);
+    Serial.print(", Y: "); Serial.print(gyro_deg_per_sec_Y_offset);
+    Serial.print(", Z: "); Serial.println(gyro_deg_per_sec_Z_offset);
 
     Serial.print("Accelerometer Offsets: X: "); Serial.print(accelOffsets[0]);
     Serial.print(", Y: "); Serial.print(accelOffsets[1]);
@@ -1078,6 +1210,7 @@ void calculateOffsetsAndScalingFactors() {
     Serial.print("Accelerometer Scaling Factors: X: "); Serial.print(accelScaleFactors[0]);
     Serial.print(", Y: "); Serial.print(accelScaleFactors[1]);
     Serial.print(", Z: "); Serial.println(accelScaleFactors[2]);
+    #endif
 }
 
 
@@ -1224,7 +1357,7 @@ void calibrateIMU() {
         case COMPLETED:
 
             // play completion sound
-            ledcWriteTone(SPEAKER_CH,1600);
+            //ledcWriteTone(SPEAKER_CH,1600);
 
 
             // Calculate the offsets and scaling factors

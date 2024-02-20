@@ -21,14 +21,15 @@ void exec_RealTcode(){
     return;
   }
 
-  else if (!IMU_has_been_calibrated){
+  // else if (!IMU_has_been_calibrated){
     
-    Movement_Setup();
+  //   Movement_Setup();
 
-    return;
-  }
+  //   return;
+  // }
+  IMU_has_been_calibrated = true;
 
-  else if (is_booted && IMU_has_been_init && IMU_has_been_calibrated) { // If Device is booted, run the main code
+  if (is_booted && IMU_has_been_init && IMU_has_been_calibrated) { // If Device is booted, run the main code
     Movement_Loop(); // Call the movement loop for balancing and motion control
   }
 

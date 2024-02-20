@@ -67,7 +67,7 @@ void LCD_Abort_DEG_Message();
 
 void LCD_Resume_from_Abort_Message();
 
-void LCD_Western_Artificial_Horizion();
+void LCD_Western_Artificial_Horizon();
 
 void LCD_IMU_Message();
 

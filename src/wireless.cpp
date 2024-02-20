@@ -1,9 +1,10 @@
-
+// wireless.cpp
 #include <Arduino.h>
 
 #include "creds.h"
 
 #include "variables.h"
+#include "IO.h"
 
 #include "movement.h"
 
@@ -42,6 +43,8 @@ void recvMsg(uint8_t *data, size_t len){
   
   //Serial.println(d);
 }
+
+
 
 
 void cartesianToPolar() {
@@ -194,8 +197,76 @@ void processCharArray() {
   cartesianToPolar();
 }
 
+# define PRINT_SENT 1
+
+void sendData() {
+  RED_LED(1);
+  // Structure and data to send as before
+  struct_message myData;
+
+  // Create a string formatted as (+/-)XX(+/-)YY
+
+  String message = "c";
+
+  if (JoyC_X < 10) {
+    message += "+0";
+  }
+  else {
+    message += "+";
+  }
+  message += String(JoyC_X);
+
+  if (JoyC_Y < 10) {
+    message += "+0";
+  }
+  else {
+    message += "+";
+  }
+  message += String(JoyC_Y);
+
+  //strcpy(myData.a, (if (x < 0) ? "" : "+") + String(x) + (if (y < 0) ? "" : "+") + String(y));
+
+  // Move message to myData
+  message.toCharArray(myData.a, 8);
+
+  // Send message via ESP-NOW
+  esp_err_t result = esp_now_send(broadcastAddress, (uint8_t *) &myData, sizeof(myData));
+  
+  if (result == ESP_OK) {
+    #if PRINT_SENT
+    Serial.println("Sent with success, message: " + String(myData.a));
+    #endif
+  }
+  else {
+    Serial.print("Error sending the data: " + String(result) + "myData: " + String(myData.a));
+    //Serial.print(String(*sender_mac, HEX) + ":" + String(*(sender_mac + 1), HEX) + ":" + String(*(sender_mac + 2), HEX) + ":" + String(*(sender_mac + 3), HEX) + ":" + String(*(sender_mac + 4), HEX) + ":" + String(*(sender_mac + 5), HEX));
+  }
+  RED_LED(0);
+
+  should_reply_to_C_cmd = false;
+}
 
 
+#define DEBUG_converMacAddress 1
+void convertMacAddress(const String &macStr, uint8_t *macAddr) {
+
+   // Assumes macStr is in the format "XX:XX:XX:XX:XX:XX"
+    sscanf(macStr.c_str(), "%hhx:%hhx:%hhx:%hhx:%hhx:%hhx", 
+           &macAddr[0], &macAddr[1], &macAddr[2], &macAddr[3], &macAddr[4], &macAddr[5]);
+
+    #if DEBUG_converMacAddress
+    Serial.println("@convertMacAddress(" + macStr + ") = " + String(macAddr[0], HEX) + ":" + String(macAddr[1], HEX) + ":" + String(macAddr[2], HEX) + ":" + String(macAddr[3], HEX) + ":" + String(macAddr[4], HEX) + ":" + String(macAddr[5], HEX));
+    #endif
+
+   
+}
+
+String macToString(const uint8_t* mac) {
+  char macStr[18]; // 17 for MAC + 1 for null terminator
+  snprintf(macStr, sizeof(macStr), "%02X:%02X:%02X:%02X:%02X:%02X", 
+           mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+  return String(macStr);
+}
 
 # define PRINT_MAC_RECEIVED 0
 # define PRINT_BYTES_RECEIVED 0
@@ -203,6 +274,46 @@ void processCharArray() {
 # define PRINT_X_Y 0
 // callback function that will be executed when data is received
 void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
+
+  
+  if (!remote_connected && sender_mac == 0x00) {
+    
+    //sender_mac_str = String(*mac, HEX); // BAD, DOES NOT WORK = 'c' instead of the MAC
+    //sender_mac_str = String(mac[0], HEX) + ":" + String(mac[1], HEX) + ":" + String(mac[2], HEX) + ":" + String(mac[3], HEX) + ":" + String(mac[4], HEX) + ":" + String(mac[5], HEX);
+    
+    sender_mac_str = macToString(mac);
+
+    Serial.println("Remote found :D MAC: " + sender_mac_str + "\n");
+    
+    // Convert Robot_MAC String to byte array
+    convertMacAddress(sender_mac_str, broadcastAddress);
+    
+    // Setup ESPNOW peer
+    esp_now_peer_info_t peerInfo;
+    memcpy(peerInfo.peer_addr, broadcastAddress, 6);
+    peerInfo.channel = 0;
+    peerInfo.encrypt = false;
+
+
+    // Add peer
+    esp_err_t addPeerResult = esp_now_add_peer(&peerInfo);
+    if (addPeerResult != ESP_OK){
+      Serial.println("Failed to add peer:" + String(*peerInfo.peer_addr, HEX) + "\n");
+      return;
+    }
+    Serial.println("SUCCESS: Remote found :D MAC: " + String(*mac) + "\n");
+    sender_mac = *mac;
+    remote_connected = true;
+
+    Serial.println("Peer added");
+
+    // robot_connected = true;
+
+  }
+
+  // if () {
+  //   sender_mac = *mac;
+  // }
 
   // print CPU# OnDataRecv(A8:0D:3A:3B:3C:3D, "example msg", 11)
 
@@ -228,6 +339,9 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
 
 
   processCharArray(); // Call the function to process the received data
+
+  should_reply_to_C_cmd = true;
+  //sendData(); // Send the processed data back to the sender
 
 
   #if PRINT_X_Y

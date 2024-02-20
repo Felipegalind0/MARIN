@@ -1,4 +1,5 @@
 # include "BackgroundTask.h"
+#include "wireless.h"
 
 # define SEND_STATUS_OVER_SERIAL 0
 void exec_BackgroundTask() {
@@ -24,6 +25,12 @@ void exec_BackgroundTask() {
 
     // Update the LCD display
     LCD_loop();
+
+    if(should_reply_to_C_cmd){
+      vTaskDelay(1000);
+      sendData();
+      should_reply_to_C_cmd = false;
+    }
     
 
     // M5.BtnA.read();

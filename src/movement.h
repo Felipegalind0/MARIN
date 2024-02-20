@@ -37,8 +37,8 @@ void drive();
 void calDelay(int n);
 void startDemo();
 void sendStatus();
-void readGyro();
-void readGyro();
+void readRAWGyro();
+void readRAWGyro();
 
 void dispAngle();
 

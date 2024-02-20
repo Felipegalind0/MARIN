@@ -2,9 +2,15 @@
 #include "IO.h"
 
 void Setup_Speaker(){
+    //     //ledcSetup(LED_CH, 5000, 8);
+    // ledcSetup(SPEAKER_CH, 5000, 8);
+    // //ledcAttachPin(LED, LED_CH);
+    // ledcAttachPin(SPEAKER, SPEAKER_CH);
     pinMode(SPEAKER, OUTPUT);
     ledcSetup(SPEAKER_CH, 5000, 8);
     ledcAttachPin(SPEAKER, SPEAKER_CH);
+
+    M5.Beep.setVolume(10);
 }
 
 void Remote_Sound() {

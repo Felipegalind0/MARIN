@@ -28,6 +28,10 @@ extern TaskHandle_t Task0, Task1;
 
 extern SemaphoreHandle_t syncSemaphore;
 
+extern uint8_t broadcastAddress[6]; // Array to store the MAC address
+
+extern String sender_mac_str;
+
 
 //-----------------Battery Variables-----------------
 
@@ -38,6 +42,11 @@ extern float vBatt, voltAve;
 extern float vBatt_min, vBatt_max;
 
 extern boolean isCharging;
+
+
+extern uint8_t sender_mac;
+extern boolean remote_connected;
+extern boolean should_reply_to_C_cmd;
 
 
 //-----------------Time Variables-----------------
@@ -81,15 +90,20 @@ extern int16_t counter;
 extern uint32_t time0, time1;
 extern int16_t counterOverPwr, maxOvp, maxAngle;
 extern float power, powerR, powerL, yawPower;
-extern float varAng, IMU_Y_deg_per_sec, IMU_Z_deg_per_sec, varSpd, varDst, varIang;
 
-extern float gyroXoffset, gyro_deg_per_sec_Y_offset, gyro_deg_per_sec_Z_offset, accXoffset, accYoffset, accZoffset;
+extern float varAng;
+
+extern float IMU_X_deg_per_sec, IMU_Y_deg_per_sec, IMU_Z_deg_per_sec;
+extern float varSpd, varDst, varIang;
+
+extern float gyroXoffset;
+extern float gyro_deg_per_sec_X_offset, gyro_deg_per_sec_Y_offset, gyro_deg_per_sec_Z_offset, accXoffset, accYoffset, accZoffset;
 
 extern boolean IMU_has_been_calibrated, IMU_has_been_init;
 
-extern float gyroXdata, gyro_Y_data, gyroZdata, IMU_X_acceleration, IMU_Y_acceleration, IMU_Z_acceleration;
+extern float IMU_RAW_X_dps, IMU_RAW_Y_dps, IMU_RAW_Z_dps, IMU_RAW_X_Gs, IMU_RAW_Y_Gs, IMU_RAW_Z_Gs;
 extern float Avg_IMU_X_deg_per_sec, Avg_IMU_Y_deg_per_sec, Avg_IMU_Z_deg_per_sec;
-extern float Avg_IMU_X_acceleration, Avg_IMU_Y_acceleration, Avg_IMU_Z_acceleration;
+extern float Avg_IMU_X_Gs, Avg_IMU_Y_Gs, Avg_IMU_Z_Gs;
 extern float Avg_Robot_X_deg_per_sec, Avg_Robot_Y_deg_per_sec, Avg_Robot_Z_deg_per_sec;
 extern float robot_X_deg, robot_Y_deg, robot_Z_deg;
 

@@ -133,13 +133,100 @@ boolean print_updating_battery_voltage = false;
 
 boolean print_RealT_Times = true;
 
+
+// Okay, bruh, so very cool that you wanna show off that you took CS106B, but like, this is not the place to use ptrs my dude. 
+// I'm not sure if you're aware, but this is a microcontroller, with 2 cores, and you are using a pointer to a float that is written to by one core and read by another.
+// This is not a good idea. lets see how long it takes for this to blow up in your face. lets just keep it for now to make things spicy.
+void LCD_Display_IMU_Values(float* IMU_X_dps, float* IMU_Y_dps, float* IMU_Z_dps, float* IMU_X_Gs, float* IMU_Y_Gs, float* IMU_Z_Gs){
+
+    canvas.fillRoundRect(5, 140, 125, 40, 5, WHITE);
+
+
+    // print Avg_IMU_{axis}_deg_per_ser and Avg_IMU_{axis}_Gs for x,y,z 
+
+    // print 'IMU' in the top left corner
+
+    canvas.setTextFont(1);
+    canvas.setTextSize(1);
+
+    canvas.setTextColor(BLACK);
+
+    canvas.setCursor(7, 142);
+    canvas.print("dps");
+
+    // print XYZ in RGB on the top column of the table
+
+    canvas.setCursor(35, 142);
+    canvas.setTextColor(RED);
+    canvas.print("X");
+
+    canvas.setCursor(57, 142);
+    canvas.setTextColor(GREEN);
+    canvas.print("Y");
+
+    canvas.setCursor(87, 142);
+    canvas.setTextColor(BLUE);
+    canvas.print("Z");
+
+
+    // print the dps and Gs values for each axis
+
+    canvas.setTextColor(BLACK);
+
+    // canvas.setCursor(7, 157);
+    // canvas.print("dps");
+
+    canvas.setCursor(7, 172);
+    canvas.print("Gs");
+
+
+
+    // print the IMU outputs:
+
+    canvas.setTextColor(BLACK);
+
+    canvas.setCursor(7, 153);
+
+    canvas.print(*IMU_X_dps);
+
+    canvas.setCursor(55, 153);
+
+    canvas.print(*IMU_Y_dps);
+
+    canvas.setCursor(92, 153);
+
+    canvas.print(*IMU_Z_dps);
+
+    canvas.setCursor(22, 170);
+
+    canvas.print(*IMU_X_Gs);
+
+    canvas.setCursor(55, 170);
+
+    canvas.print(*IMU_Y_Gs);
+
+    canvas.setCursor(92, 170);
+
+    canvas.print(*IMU_Z_Gs);
+
+    
+
+
+
+
+
+
+}
+
 void LCD_loop(){
 
-    LCD_Western_Artificial_Horizion();
+    LCD_Western_Artificial_Horizon();
     
     LCD_CPU_Widget();
 
     LCD_DispBatVolt();
+
+    LCD_Display_IMU_Values(&Avg_IMU_X_deg_per_sec, &Avg_IMU_Y_deg_per_sec, &Avg_IMU_Z_deg_per_sec, &Avg_IMU_X_Gs, &Avg_IMU_Y_Gs, &Avg_IMU_Z_Gs);
 
 
     if ((counter % 100) == 0) {
@@ -451,7 +538,7 @@ void LCD_DispRotation() {
     //canvas.printf("%2+.2f   ", yawAngle);
 }
 
-void LCD_Western_Artificial_Horizion(){
+void LCD_Western_Artificial_Horizon(){
 
     int AH_X = 18;
     int AH_Y = 20;
@@ -786,7 +873,7 @@ void LCD_DispAngle() {
    canvas.fillRoundRect(LCD_ANGLE_X+10, LCD_ANGLE_Y-10,
      LCD_ANGLE_W, LCD_ANGLE_H, LCD_ANGLE_R, GREEN);
 
-   //canvas.printf("%5.0f   ", (-Avg_IMU_Z_acceleration)*90.0);
+   //canvas.printf("%5.0f   ", (-Avg_IMU_Z_Gs)*90.0);
 
     canvas.printf("%5.0f   ", (robot_Y_deg));
 }
