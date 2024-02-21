@@ -74,7 +74,7 @@ void Movement_Setup() {
 
 
 
-    calibrateIMU();
+    //calibrateIMU();
 
 
 
@@ -87,7 +87,7 @@ void Movement_Setup() {
 
     // Run Calibration1
     
-    //calib1();
+    calib1();
 
     // Add to Movement_Setup() in movement.cpp
 
@@ -152,7 +152,7 @@ void Movement_Loop() {
     if(isArmed){
         if (!standing) { // If Robot is not Standing
 
-            Avg_Robot_Z_deg_per_sec = Avg_Robot_Z_deg_per_sec * 0.9 + IMU_Y_deg_per_sec * 0.1; // update average angular velocity
+            //Avg_Robot_Z_deg_per_sec = Avg_Robot_Z_deg_per_sec * 0.9 + IMU_Y_deg_per_sec * 0.1; // update average angular velocity
             
 
             
@@ -164,7 +164,7 @@ void Movement_Loop() {
                 // Run Second Calibration
                 LCD_calib2_Message();
                 
-                //calib2();
+                calib2();
 
                 // if (demoMode == 1) startDemo();
 
@@ -199,19 +199,23 @@ void Movement_Loop() {
 
 void report_DEG_Abort(){
     LCD_Abort_DEG_Message();
+    LCD_flush();
 }
 
 void report_PWR_Abort(){
     LCD_Abort_PWR_Message();
+    LCD_flush();
 }
 
 void Abort(String MSG){
+
+    exec_status = "ABORT: " + MSG;
 
     LCD_Abort_Message();
 
     if(MSG == "Max DEG") report_DEG_Abort();
 
-    if(MSG == "Max PWR") report_PWR_Abort();
+    else if(MSG == "Max PWR") report_PWR_Abort();
 
     resetMotor();
 
@@ -232,10 +236,11 @@ void Abort(String MSG){
         digitalWrite(LED, LOW);
         ledcWriteTone(SPEAKER_CH,0);
 
-        if (Abtn) {
+        if(M5.BtnA.wasPressed()){
+            Serial.println("Button A was pressed");
+            Abtn = 1;
             abortWasHandled = true;
-            break;
-        };
+        }
     }
 
     LCD_Resume_from_Abort_Message();
@@ -249,70 +254,77 @@ void Abort(String MSG){
 
     
 
-// // First Calibration
-// void calib1() {
+// First Calibration
+void calib1() {
 
 
-//     LCD_calib1_Message();
-//     //exec_status = "IMU Calibration";
-//     update_exec_status("Starting IMU Calibration");
-//     LCD_Status_Message();
-//     RED_LED(1);
+    LCD_calib1_Message();
+    //exec_status = "IMU Calibration";
+    update_exec_status("Starting IMU Calibration");
+    LCD_Status_Message();
+    RED_LED(1);
 
-//     calDelay(150);
+    calDelay(150);
 
-//     gyro_deg_per_sec_Y_offset = 0.0;
+    gyro_deg_per_sec_X_offset = 0.0;
+    gyro_deg_per_sec_Y_offset = 0.0;
+    gyro_deg_per_sec_Z_offset = 0.0;
 
-//     for (int i = 0; i < N_CAL1; i++) {
-//         readRAWGyro();
-//         gyro_deg_per_sec_Y_offset += IMU_RAW_Y_dps;
-//         update_exec_status("g_Y = " + String(IMU_RAW_Y_dps));
-//         LCD_Status_Message();
-//         vTaskDelay(9);
-//     }
+    for (int i = 0; i < N_CAL1; i++) {
+        readRAWGyro();
+        gyro_deg_per_sec_X_offset += IMU_RAW_X_dps;
+        gyro_deg_per_sec_Y_offset += IMU_RAW_Y_dps;
+        gyro_deg_per_sec_Z_offset += IMU_RAW_Z_dps;
+        update_exec_status("g_Y = " + String(IMU_RAW_Y_dps));
+        LCD_Status_Message();
+        vTaskDelay(9);
+    }
 
-//     gyro_deg_per_sec_Y_offset /= (float)N_CAL1;
+    gyro_deg_per_sec_X_offset /= (float)N_CAL1;
+    gyro_deg_per_sec_Y_offset /= (float)N_CAL1;
+    gyro_deg_per_sec_Z_offset /= (float)N_CAL1;
 
-//     update_exec_status("g_Y_offset = " + String(gyro_deg_per_sec_Y_offset));
-//     LCD_Status_Message();
+    update_exec_status("g_Y_offset = " + String(gyro_deg_per_sec_Y_offset));
+    LCD_Status_Message();
     
-//     M5.Lcd.fillScreen(BLACK);
+    M5.Lcd.fillScreen(BLACK);
 
-//     RED_LED(0);
+    RED_LED(0);
 
-//     LCD_calib1_complete_Message();
-// }
+    LCD_calib1_complete_Message();
+}
 
-// // Second Calibration
-// void calib2() {
-//     resetVar();
-//     resetMotor();
-//     digitalWrite(LED, HIGH);
-//     calDelay(80);
-//     M5.Lcd.setCursor(30, LCDV_MID);
-//     M5.Lcd.println(" Cal-2  ");
-//     accXoffset  = 0.0;
-//     gyro_deg_per_sec_Z_offset = 0.0;
-//     for (int i = 0; i < N_CAL2; i++) {
-//         readRAWGyro();
-//         accXoffset += IMU_RAW_X_Gs;
-//         gyro_deg_per_sec_Z_offset += IMU_RAW_Z_dps;
-//         vTaskDelay(9);
-//     }
-//     accXoffset /= (float)N_CAL2;
-//     gyro_deg_per_sec_Z_offset /= (float)N_CAL2;
-//     M5.Lcd.fillScreen(BLACK);
-//     digitalWrite(LED, LOW);
-// }
+// Second Calibration
+void calib2() {
+    resetVar();
+    resetMotor();
+    digitalWrite(LED, HIGH);
+    calDelay(80);
+    M5.Lcd.setCursor(30, LCDV_MID);
+    M5.Lcd.println(" Cal-2  ");
+    accXoffset  = 0.0;
+    gyro_deg_per_sec_Z_offset = 0.0;
+    //gyro_deg_per_sec_Z_offset = 0.0;
+    for (int i = 0; i < N_CAL2; i++) {
+        readRAWGyro();
+        accXoffset += IMU_RAW_X_Gs;
+        gyro_deg_per_sec_Z_offset += IMU_RAW_Z_dps;
+        vTaskDelay(9);
+    }
+    accXoffset /= (float)N_CAL2;
+    gyro_deg_per_sec_Z_offset /= (float)N_CAL2;
+    M5.Lcd.fillScreen(BLACK);
+    digitalWrite(LED, LOW);
+}
 
 
 
-// void calDelay(int n) {
-//     for (int i = 0; i < n; i++) {
-//         readRAWGyro();
-//         vTaskDelay(9);
-//     }
-// }
+void calDelay(int n) {
+    for (int i = 0; i < n; i++) {
+        readRAWGyro();
+        vTaskDelay(9);
+    }
+}
 
 // void startDemo() {
 //     moveRate       = 1.0;
@@ -322,12 +334,17 @@ void Abort(String MSG){
 
 float deltat;
 
+// float prev_yaw = 0;
+
+// float delta_yaw = 0;
+
 
 void getGyro() {
     readRAWGyro();
+    
     IMU_X_deg_per_sec = IMU_RAW_X_dps - gyro_deg_per_sec_X_offset; // unit:deg/sec
-    IMU_Y_deg_per_sec = IMU_RAW_Y_dps - gyro_deg_per_sec_Y_offset;// unit:deg/sec
-    IMU_Z_deg_per_sec = IMU_RAW_Z_dps - gyro_deg_per_sec_Z_offset; // unit:deg/sec
+    IMU_Y_deg_per_sec = IMU_RAW_Y_dps - gyro_deg_per_sec_Y_offset;// unit:deg/sec AKA var0mg
+    IMU_Z_deg_per_sec = IMU_RAW_Z_dps - gyro_deg_per_sec_Z_offset; // unit:deg/sec AKA yawAngle
 
     Avg_IMU_X_deg_per_sec = Avg_IMU_X_deg_per_sec * 0.9 + IMU_X_deg_per_sec * 0.1;  // update average y angular velocity
     Avg_IMU_Y_deg_per_sec = Avg_IMU_Y_deg_per_sec * 0.9 + IMU_Y_deg_per_sec * 0.1;  // update average y angular velocity
@@ -339,9 +356,9 @@ void getGyro() {
 
 
     //calculate the x, y, z angles
-    robot_Y_deg = (((Avg_IMU_X_Gs) ? -1 : 1) * 90 * Avg_IMU_X_Gs);  // unit:deg
+    //robot_Y_deg = (((Avg_IMU_X_Gs) ? -1 : 1) * 90 * Avg_IMU_X_Gs);  // unit:deg
 
-    yawAngle += IMU_Z_deg_per_sec * clk;  // unit:deg
+    yawAngle += Avg_IMU_Z_deg_per_sec * clk;  // unit:deg
 
     // calculate the heading, as yawAngle mod 360
     heading = (byte)(round(yawAngle));
@@ -349,17 +366,6 @@ void getGyro() {
 
     varAng += (IMU_Y_deg_per_sec + ((IMU_RAW_X_Gs - accXoffset) * 57.3 - varAng) * cutoff) *
               clk;  // complementary filter
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -394,7 +400,12 @@ void getGyro() {
     //   pitch = filter.getPitch();
     //   yaw = filter.getYaw();
 
-    // Serial.println("R: " + String(roll) + " P: " + String(pitch) + " Y: " + String(yaw));
+    //Serial.println("R: " + String(roll) + " P: " + String(pitch) + " Y: " + String(yaw));
+
+    //Serial.println(" P: " + String(pitch) + " Y: " + String(delta_yaw));
+
+    //Serial.println(" varAng: " + String(varAng) + " p: " + String(pitch));
+
 
     #define RAW_DATA 1
 
@@ -408,11 +419,28 @@ void getGyro() {
 
     deltat = fusion.deltatUpdate();
     //fusion.MahonyUpdate(gx, gy, gz, ax, ay, az, mx, my, mz, deltat);  //mahony is suggested if there isn't the mag
-    fusion.MadgwickUpdate(gX, gY, gZ, aX, aY, aZ, deltat);  //else use the magwick
+    //fusion.MadgwickUpdate(gX, gY, gZ, aX, aY, aZ, deltat);  //else use the magwick
+    fusion.MadgwickUpdate(IMU_X_deg_per_sec * DEG_TO_RAD, IMU_Y_deg_per_sec * DEG_TO_RAD, IMU_Z_deg_per_sec * DEG_TO_RAD, Avg_IMU_X_Gs, Avg_IMU_Y_Gs, Avg_IMU_Z_Gs, deltat);  //else use the magwick
+
+    //prev_yaw = yaw;
 
     roll = fusion.getRoll();
     pitch = fusion.getPitch();
     yaw = fusion.getYaw();
+
+    // delta_yaw = yaw - prev_yaw;
+
+    // // check if 0 
+
+    // if (abs(delta_yaw) > 180) {
+    //     if (delta_yaw > 0) {
+    //         delta_yaw -= 360;
+    //     } else {
+    //         delta_yaw += 360;
+    //     }
+    // }
+
+    // robot_yaw += delta_yaw;
 
     #define EULER_DATA 0
 
@@ -438,6 +466,7 @@ void getGyro() {
 
 
     //Serial.println("Pitch: " + String(pitch) + " Roll: " + String(roll) + " Yaw: " + String(yaw));
+    
 
 
 
@@ -475,7 +504,7 @@ void readRAWGyro() {
 }
 
 
-void drive() {
+void drive() { //spinStep and moveRate map to X and Y in the JoyC
 #ifdef DEBUG
     debugDrive();
 #endif
@@ -501,7 +530,14 @@ void drive() {
         counterOverPwr = 0;
     if (counterOverPwr > maxOvp) return;
     power    = constrain(power, -maxPwr, maxPwr);
+
+
     yawPower = (yawAngle - spinTarget) * Kyaw;
+
+
+    //yawPower = 0;
+
+
     powerR   = power - yawPower;
     powerL   = power + yawPower;
 

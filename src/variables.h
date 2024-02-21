@@ -109,6 +109,8 @@ extern float robot_X_deg, robot_Y_deg, robot_Z_deg;
 
 extern float roll, pitch, yaw;
 
+extern float robot_yaw;
+
 extern float gX, gY, gZ, aX, aY, aZ;
 
 

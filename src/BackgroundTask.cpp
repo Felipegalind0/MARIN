@@ -27,7 +27,7 @@ void exec_BackgroundTask() {
     LCD_loop();
 
     if(should_reply_to_C_cmd){
-      vTaskDelay(1000);
+      //vTaskDelay(1000);
       sendData();
       should_reply_to_C_cmd = false;
     }

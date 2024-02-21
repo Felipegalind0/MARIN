@@ -73,4 +73,6 @@ void LCD_IMU_Message();
 
 void LCD_Status_Message();
 
+void LCD_flush();
+
 #endif

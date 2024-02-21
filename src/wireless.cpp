@@ -197,7 +197,7 @@ void processCharArray() {
   cartesianToPolar();
 }
 
-# define PRINT_SENT 1
+# define PRINT_SENT 0
 
 void sendData() {
   RED_LED(1);

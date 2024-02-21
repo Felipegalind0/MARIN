@@ -926,7 +926,7 @@ void LCD_Abort_DEG_Message(){
 void LCD_Abort_PWR_Message(){
 
    canvas.setCursor(Middle_M_X-25, Middle_M_Y + 30);
-   canvas.print("Max PWR:");
+   canvas.print("R:");
    canvas.println(maxOvp);
 
    canvas.setCursor(Middle_M_X+25, Middle_M_Y + 15);

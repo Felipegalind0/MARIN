@@ -101,10 +101,16 @@ float IMU_RAW_X_dps, IMU_RAW_Y_dps, IMU_RAW_Z_dps, IMU_RAW_X_Gs, IMU_RAW_Y_Gs, I
 boolean IMU_has_been_calibrated = false, IMU_has_been_init = false;
 float Avg_IMU_X_deg_per_sec = 0.0, Avg_IMU_Y_deg_per_sec = 0.0, Avg_IMU_Z_deg_per_sec = 0.0;
 float Avg_IMU_X_Gs = 0.0, Avg_IMU_Y_Gs = 0.0, Avg_IMU_Z_Gs = 0.0;
+
 float Avg_Robot_Z_deg_per_sec = 0.0;
+
 float robot_X_deg = 0.0, robot_Y_deg = 0.0, robot_Z_deg = 0.0;
 
 float roll = 0.0, pitch = 0.0, yaw = 0.0;
+
+
+
+float robot_yaw = 0.0;
 
 float gX = 0.0, gY = 0.0, gZ = 0.0, aX = 0.0, aY = 0.0, aZ = 0.0;
 
@@ -128,7 +134,7 @@ boolean abortWasHandled = false;
 
 int16_t counter       = 0;
 uint32_t time0 = 0, time1 = 0;
-int16_t counterOverPwr = 0, maxOvp = 80, maxAngle = 30;
+int16_t counterOverPwr = 0, maxOvp = 80, maxAngle = 40;
 float power, powerR, powerL, yawPower;
 
 
@@ -184,20 +190,70 @@ void resetVar() {
     varIang             = 0.0;
 }
 
+// void resetPara() {
+//     Kang          = 37.0;
+//     Komg          = 0.84;
+//     KIang         = 800.0;
+//     Kyaw          = 4.0;
+//     Kdst          = 85.0;
+//     Kspd          = 2.7;
+//     mechFactL     = 0.45;
+//     mechFactR     = 0.45;
+//     punchPwr      = 20;
+//     punchDur      = 1;
+//     fbBalance     = -3;
+//     motorDeadband = 10;
+//     maxPwr        = 126;
+//     punchPwr2     = max(punchPwr, motorDeadband);
+// }
+
 void resetPara() {
-    Kang          = 37.0;
-    Komg          = 0.84;
-    KIang         = 800.0;
+    //Kang          = 20.0;
+    //Kang          = 37.0;
+    //Kang          = 50.0;
+    Kang          = 60.0;
+    //Kang          = 70.0; BAD makes the robot quickly ocilate in pitch, it does not fall, but you can hear the motors working hard
+
+    //Komg          = 0.84;
+    //Komg          = 1;
+    //Komg          = 1.5;
+    //Komg          = 1.7;
+    Komg          = 2.0;
+    //Komg          = 3; BAD makes the robot very quickly ocilate in pitch, it does not fall, but you can hear the motors working hard
+
+    //KIang         = 400.0;
+    //KIang         = 800.0;
+    //KIang         = 1000.0; 
+    //KIang         = 1200.0; //better
+    KIang         = 1400.0; //Maybe better
+
+    //Kyaw          = 1.0;
     Kyaw          = 4.0;
-    Kdst          = 85.0;
-    Kspd          = 2.7;
+
+
+    //kdst seems to scale the response of the robot to forward/backward 
+    //(X axis) movement
+    //Kdst          = 5.0;
+    Kdst          = 100.0; // best
+    //Kdst          = 85.0;
+    //Kdst          = 130.0;
+    //Kdst          = 200.0;
+    //Kdst          = 385.0; // BAD: Medium speed ocilations
+
+    //Kspd          = 2.7;
+    //Kspd          = 4.7;
+    //Kspd          = 7.0;
+    Kspd          = 8.0;
+    //Kspd          = 9.0;
+    //Kspd          = 10.0; // too much
+
     mechFactL     = 0.45;
     mechFactR     = 0.45;
     punchPwr      = 20;
     punchDur      = 1;
     fbBalance     = -3;
     motorDeadband = 10;
-    maxPwr        = 120;
+    maxPwr        = 126;
     punchPwr2     = max(punchPwr, motorDeadband);
 }
 
