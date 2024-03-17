@@ -9,6 +9,12 @@ By Felipe Galindo
 # define SOFTWARE_VERSION "3.0.0"
 
 /*
+
+MARIN:
+
+Multi-core Autonomous Robot with Integrated Navigation
+
+
 This code is based of the example BalaC with the following changes:
 
   - Improved Controller
@@ -153,7 +159,7 @@ void setup() {
                     RealTcore);  /* pin task to core 1 */
 
   // Add a delay to give the task some time to start
-  vTaskDelay(100); 
+  //vTaskDelay(100); 
 
   // Startup the Background Task
   xTaskCreatePinnedToCore(
@@ -167,7 +173,7 @@ void setup() {
 
 
   // Add another delay to give the background task some time to start
-  vTaskDelay(100);
+  //vTaskDelay(100);
 
   // Validate that the system started up correctly
    //SysInit_Check();

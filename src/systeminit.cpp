@@ -55,9 +55,6 @@ void SysInit_Setup(void){
 
     fs_setup();
 
-    RED_LED(true);
-    Wireless_Setup();
-    RED_LED(false);
 
     //Zero Motors
     resetMotor();

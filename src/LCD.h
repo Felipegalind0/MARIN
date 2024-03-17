@@ -51,7 +51,7 @@ void LCD_CORE_Message();
 void LCD_IMU_Message();
 void LCD_Felg_Message();
 void LCD_calib1_Message();
-void LCD_calib1_complete_Message(void);
+void LCD_calib1_complete_Message(bool isCalibrated);
 
 void LCD_calib2_Message(void);
 

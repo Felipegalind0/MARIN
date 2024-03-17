@@ -7,6 +7,11 @@ void exec_BackgroundTask() {
   if (xSemaphoreTake(syncSemaphore, portMAX_DELAY) == pdTRUE) {
 
 
+  if (wireless_status == OFF) { // If wireless is off, run the wireless setup code
+    Wireless_Setup();
+  }
+
+
 
     // 
     if ((counter % btnCounter) == 0) {

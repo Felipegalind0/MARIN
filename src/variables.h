@@ -15,6 +15,14 @@ extern float deviceTemp;
 
 //-----------------System Variables-----------------
 
+enum Wireless_Status {
+    OFF,
+    INITIALIZING,
+    INITIALIZED,
+};
+
+extern byte wireless_status;
+
 
 #define RealTcore 1
 #define BackgroundCore 0
@@ -32,6 +40,9 @@ extern uint8_t broadcastAddress[6]; // Array to store the MAC address
 
 extern String sender_mac_str;
 
+extern String remote_msg;
+
+extern byte i_msg;
 
 //-----------------Battery Variables-----------------
 
@@ -53,7 +64,7 @@ extern boolean should_reply_to_C_cmd;
 extern int64_t RealTcode_start_time, RealTcode_end_time, RealTcode_execution_time, RealTcode_no_execution_time, RealTcode_total_execution_time;
 extern int64_t BackgroundTask_execution_time_start, BackgroundTask_execution_time_end, BackgroundTask_execution_time, BackgroundTask_total_execution_time, BackgroundTask_no_execution_time;
 
-extern double RealTcode_CPU_load, BackgroundTask_CPU_load;
+extern byte RealTcode_CPU_load, BackgroundTask_CPU_load;
 
 
 
@@ -83,7 +94,9 @@ extern boolean JoyC_Xinput;
 //-----------------LCD Variables-----------------
 extern uint8_t lcd_brightness;
 
-extern boolean standing, hasFallen, isArmed, abortWasHandled;
+extern boolean standing, hasFallen, isArmed, abortWasHandled, takeoffRequested;
+
+extern int takeoffTime;
 
 extern boolean serialMonitor;
 extern int16_t counter;
@@ -94,12 +107,12 @@ extern float power, powerR, powerL, yawPower;
 extern float varAng;
 
 extern float IMU_X_deg_per_sec, IMU_Y_deg_per_sec, IMU_Z_deg_per_sec;
-extern float varSpd, varDst, varIang;
+extern float varSpd, varDst, varIang, I_y_dps;
 
 extern float gyroXoffset;
 extern float gyro_deg_per_sec_X_offset, gyro_deg_per_sec_Y_offset, gyro_deg_per_sec_Z_offset, accXoffset, accYoffset, accZoffset;
 
-extern boolean IMU_has_been_calibrated, IMU_has_been_init;
+extern boolean IMU_has_been_calibrated, IMU_has_been_init, IMU_balance_point_has_been_set;
 
 extern float IMU_RAW_X_dps, IMU_RAW_Y_dps, IMU_RAW_Z_dps, IMU_RAW_X_Gs, IMU_RAW_Y_Gs, IMU_RAW_Z_Gs;
 extern float Avg_IMU_X_deg_per_sec, Avg_IMU_Y_deg_per_sec, Avg_IMU_Z_deg_per_sec;
@@ -117,7 +130,7 @@ extern float gX, gY, gZ, aX, aY, aZ;
 extern float cutoff;
 extern const float clk;
 extern const uint32_t interval;
-extern float Kang, Komg, KIang, Kyaw, Kdst, Kspd;
+extern float Kang, Komg, KIang, KI_y_dps, Kyaw, Kdst, Kspd;
 extern int16_t maxPwr;
 extern float yawAngle;
 extern byte heading;

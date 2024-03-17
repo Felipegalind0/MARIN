@@ -198,7 +198,7 @@ void fs_setup(){
 
     //vTaskDelay(4000);
 
-    deleteFile(LittleFS, "/robot_config/robot_config.txt");
+    //deleteFile(LittleFS, "/robot_config/robot_config.txt");
 
     if(!LittleFS.begin(FORMAT_LITTLEFS_IF_FAILED)){
         Serial.println("LittleFS Mount Failed");

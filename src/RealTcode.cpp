@@ -25,9 +25,6 @@ void exec_RealTcode(){
     
     Movement_Setup();
 
-
-    IMU_has_been_calibrated = true;
-
     return;
   }
 

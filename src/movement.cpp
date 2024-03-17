@@ -86,8 +86,9 @@ void Movement_Setup() {
     
 
     // Run Calibration1
-    
+    //LCD_calib1_complete_Message(false);
     calib1();
+    
 
     // Add to Movement_Setup() in movement.cpp
 
@@ -127,7 +128,7 @@ void Movement_UpdateRotation(int rotation) {
   spinContinuous = rotation != 0;
 
   // Set the spinStep based on the normalized rotation value and the clock value
-  spinStep = -40.0 * normalizedRotation * clk;
+  spinStep = -69.0 * normalizedRotation * clk;
 }
 
 // Update the movement rate and direction based on the input movement value
@@ -139,7 +140,9 @@ void Movement_UpdateMovement(int movement) {
   moveRate = normalizedMovement;
 }
 
+boolean pointedUp = false;
 
+#define Takeoff_Pitch_Up_Time 1000
 // Main Loop 
 void Movement_Loop() {
     
@@ -149,8 +152,44 @@ void Movement_Loop() {
 
     getGyro();
 
+
+
     if(isArmed){
-        if (!standing) { // If Robot is not Standing
+
+        pointedUp = abs(Avg_IMU_Z_Gs) > 0.9 && abs(Avg_Robot_Z_deg_per_sec) < 1.5;
+
+        if (takeoffRequested) {
+            if (!takeoffTime){ // if has not taken off
+                takeoffTime = millis();
+                // drive both motors forward
+                drvMotorR(200);
+                drvMotorL(200);
+                
+            }
+
+            else if (pointedUp) {
+                takeoffRequested = false;
+                abortWasHandled = false;
+                standing = true;
+                drive(); 
+            }
+
+            // else if (millis() - takeoffTime < Takeoff_Pitch_Up_Time){
+
+            // }
+
+            else if (millis() - takeoffTime > Takeoff_Pitch_Up_Time ){ //if failed to pitch up in time 
+                // drive both motors forward
+                drvMotorR(0);
+                drvMotorL(0);
+                takeoffRequested = false;
+                takeoffTime = 0;
+                isArmed = false;
+            }
+        }
+
+        
+        else if (!standing) { // If Robot is not Standing
 
             //Avg_Robot_Z_deg_per_sec = Avg_Robot_Z_deg_per_sec * 0.9 + IMU_Y_deg_per_sec * 0.1; // update average angular velocity
             
@@ -159,7 +198,7 @@ void Movement_Loop() {
 
             // 0.9*90= 72
             //if Pointed 72 deg up 
-            if (abs(Avg_IMU_Z_Gs) > 0.9 && abs(Avg_Robot_Z_deg_per_sec) < 1.5) {
+            if (pointedUp) {
 
                 // Run Second Calibration
                 LCD_calib2_Message();
@@ -169,8 +208,13 @@ void Movement_Loop() {
                 // if (demoMode == 1) startDemo();
 
                 standing = true;
+                abortWasHandled = false;
             }
         } 
+
+
+
+
 
         else { // Check if Robot has fallen and disable
 
@@ -190,6 +234,10 @@ void Movement_Loop() {
         }
 
 
+    }
+    else { // If Robot is not armed
+        resetMotor();
+        standing = false;
     }
 
     
@@ -258,8 +306,10 @@ void Abort(String MSG){
 void calib1() {
 
 
-    LCD_calib1_Message();
+    //LCD_calib1_Message();
     //exec_status = "IMU Calibration";
+
+    
     update_exec_status("Starting IMU Calibration");
     LCD_Status_Message();
     RED_LED(1);
@@ -270,6 +320,7 @@ void calib1() {
     gyro_deg_per_sec_Y_offset = 0.0;
     gyro_deg_per_sec_Z_offset = 0.0;
 
+    
     for (int i = 0; i < N_CAL1; i++) {
         readRAWGyro();
         gyro_deg_per_sec_X_offset += IMU_RAW_X_dps;
@@ -290,12 +341,15 @@ void calib1() {
     M5.Lcd.fillScreen(BLACK);
 
     RED_LED(0);
+    //LCD_calib1_complete_Message(true);
 
-    LCD_calib1_complete_Message();
+    
+    IMU_has_been_calibrated = true;
 }
 
 // Second Calibration
-void calib2() {
+void 
+calib2() {
     resetVar();
     resetMotor();
     digitalWrite(LED, HIGH);
@@ -522,8 +576,9 @@ void drive() { //spinStep and moveRate map to X and Y in the JoyC
     varSpd += power * clk;
     varDst += Kdst * (varSpd * clk - moveTarget);
     varIang += KIang * varAng * clk;
+    I_y_dps += KI_y_dps * IMU_Y_deg_per_sec * clk;
     power =
-        varIang + varDst + (Kspd * varSpd) + (Kang * varAng) + (Komg * IMU_Y_deg_per_sec);
+        varIang + varDst + (Kspd * varSpd) + (Kang * varAng) + (Komg * IMU_Y_deg_per_sec) + I_y_dps;
     if (abs(power) > 1000.0)
         counterOverPwr += 1;
     else

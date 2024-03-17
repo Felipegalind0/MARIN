@@ -20,17 +20,29 @@
 //#include <ESPAsyncWebServer.h>
 //#include <WebSerial.h>
 
+#define msg_str_len 64
+
 // Structure example to receive data
 // Must match the sender structure
-typedef struct struct_message {
-    char a[7];
-} struct_message;
+typedef struct struct_message_r {
+    byte i;
+    char a[msg_str_len];
+} struct_message_r;
+
+
+
+typedef struct struct_message_s {
+    byte i;
+    char a[msg_str_len];
+    //float robot_pitch;
+} struct_message_s;
 
 
 //AsyncWebServer server(80);
 
-// Create a struct_message called myData
-struct_message myData;
+// Create a struct_message_r called myDataR
+struct_message_r myDataR;
+struct_message_s myDataS;
 
 /* Message callback of WebSerial */
 void recvMsg(uint8_t *data, size_t len){
@@ -68,12 +80,12 @@ void cartesianToPolar() {
 
 //BAD
 // void processCharArray() {
-//   if (myData.a[1] == '-' || myData.a[1] == '+') {
-//     if (myData.a[2] == '0' || myData.a[2] == '1') {
-//       if (myData.a[3] >= '0' && myData.a[3] <= '9') {
-//         int signX = (myData.a[1] == '-') ? -1 : 1;
-//         int digit1X = myData.a[2] - '0';
-//         int digit2X = myData.a[3] - '0';
+//   if (myDataR.a[1] == '-' || myDataR.a[1] == '+') {
+//     if (myDataR.a[2] == '0' || myDataR.a[2] == '1') {
+//       if (myDataR.a[3] >= '0' && myDataR.a[3] <= '9') {
+//         int signX = (myDataR.a[1] == '-') ? -1 : 1;
+//         int digit1X = myDataR.a[2] - '0';
+//         int digit2X = myDataR.a[3] - '0';
 //         x = signX * (digit1X * 10 + digit2X);
 //       }
 //     }
@@ -81,12 +93,12 @@ void cartesianToPolar() {
 //   else {
 //     Serial.println("Invalid X value");
 //   }
-//   if (myData.a[4] == '-' || myData.a[4] == '+') {
-//     if (myData.a[5] == '0' || myData.a[5] == '1') {
-//       if (myData.a[6] >= '0' && myData.a[6] <= '9') {
-//         int signY = (myData.a[4] == '-') ? -1 : 1;
-//         int digit1Y = myData.a[5] - '0';
-//         int digit2Y = myData.a[6] - '0';
+//   if (myDataR.a[4] == '-' || myDataR.a[4] == '+') {
+//     if (myDataR.a[5] == '0' || myDataR.a[5] == '1') {
+//       if (myDataR.a[6] >= '0' && myDataR.a[6] <= '9') {
+//         int signY = (myDataR.a[4] == '-') ? -1 : 1;
+//         int digit1Y = myDataR.a[5] - '0';
+//         int digit2Y = myDataR.a[6] - '0';
 //         y = signY * -(digit1Y * 10 + digit2Y);
 //       }
 //     }
@@ -103,26 +115,26 @@ void cartesianToPolar() {
 
 // BAD, DOES NOT WORK
 // void processCharArray() {
-//   if (myData.a[1] == '-' || myData.a[1] == '+') {
-//     if (myData.a[2] == '0' || myData.a[2] == '1') {
-//       if (myData.a[3] >= '0' && myData.a[3] <= '9') {
-//         int signX = (myData.a[1] == '-') ? -1 : 1;
-//         int digit1X = myData.a[2] - '0';
-//         int digit2X = myData.a[3] - '0';
+//   if (myDataR.a[1] == '-' || myDataR.a[1] == '+') {
+//     if (myDataR.a[2] == '0' || myDataR.a[2] == '1') {
+//       if (myDataR.a[3] >= '0' && myDataR.a[3] <= '9') {
+//         int signX = (myDataR.a[1] == '-') ? -1 : 1;
+//         int digit1X = myDataR.a[2] - '0';
+//         int digit2X = myDataR.a[3] - '0';
 //         x = signX * (digit1X * 10 + digit2X);
 //       }
 //     }
 //   }
 //   else {
-//     Serial.println("Invalid X value: " + myData.a[1]);
+//     Serial.println("Invalid X value: " + myDataR.a[1]);
 //     return;
 //   }
-//   if (myData.a[4] == '-' || myData.a[4] == '+') {
-//     if (myData.a[5] == '0' || myData.a[5] == '1') {
-//       if (myData.a[6] >= '0' && myData.a[6] <= '9') {
-//         int signY = (myData.a[4] == '-') ? -1 : 1;
-//         int digit1Y = myData.a[5] - '0';
-//         int digit2Y = myData.a[6] - '0';
+//   if (myDataR.a[4] == '-' || myDataR.a[4] == '+') {
+//     if (myDataR.a[5] == '0' || myDataR.a[5] == '1') {
+//       if (myDataR.a[6] >= '0' && myDataR.a[6] <= '9') {
+//         int signY = (myDataR.a[4] == '-') ? -1 : 1;
+//         int digit1Y = myDataR.a[5] - '0';
+//         int digit2Y = myDataR.a[6] - '0';
 //         y = signY * -(digit1Y * 10 + digit2Y);
 //       }
 //     }
@@ -172,73 +184,212 @@ void cartesianToPolar() {
 float JoYC_X_Sensitivity = 0.1;
 float JoYC_Y_Sensitivity = -0.1;
 void processCharArray() {
-  
-  // myData.a contains a string of 7 characters
 
-  // myData.a[0] is the first character if it is a 'c' then it is a valid x_y command
+  if(remote_msg == "ARM") {
+    abortWasHandled = true;
+    isArmed = true;
+    return;
+
+  }
+  else if(remote_msg == "DISARM") {
+    isArmed = false;
+    abortWasHandled = true;
+    return;
+
+  }
+  else if(remote_msg == "REQUEST_TAKEOFF") {
+    isArmed = true;
+    abortWasHandled = true;
+    takeoffRequested = true;
+    return;
+
+  }
+  else if (myDataR.a[command_index] == 'c') {
+    //Serial.println("Valid command: " + String(myDataR.a[command_index]));
+    JoyC_X = (myDataR.a[x_p10_index]- '0') * 10 + (myDataR.a[x_p1_index] - '0');  
+
+    // decode the second int from the string and save it as y
+    JoyC_Y = (myDataR.a[y_p10_index] - '0') * 10 + (myDataR.a[y_p1_index] - '0');
+
+    // x = 2*JoyC_X - 100;
+    // y = 2*JoyC_Y - 100;
+    x = JoYC_X_Sensitivity * (2*JoyC_X - 100);
+    y = JoYC_Y_Sensitivity * (2*JoyC_Y - 100);
+
+    // Update the rotation and movement of the robot based on the X and Y values
+    Movement_UpdateRotation(x);
+    Movement_UpdateMovement(y);
+
+    cartesianToPolar();
+  }
+  else {
+    Serial.println("Invalid command: " + remote_msg);
+    return;
+  }
+  
+  // myDataR.a contains a string of 7 characters
+
+  // myDataR.a[0] is the first character if it is a 'c' then it is a valid x_y command
   // examples: c+11+83, c+58+75, c+99+50, c+99+31, c+93+19, c+80+08, c+35+02, c+18+07, c+04+22, c+00+57, c+06+75, c+11+84, c+32+94, c+97+64, c+99+50, c+96+25, c+38+23, c+03+25
 
-  // decode the first int from the string ( myData.a[1] and myData.a[2] ) and save it as x
+  // decode the first int from the string ( myDataR.a[1] and myDataR.a[2] ) and save it as x
   // By subtracting '0' from the char, we convert the char to an int, and then multiply by 10 to get the tens place
-  JoyC_X = (myData.a[x_p10_index]- '0') * 10 + (myData.a[x_p1_index] - '0');  
-
-  // decode the second int from the string and save it as y
-  JoyC_Y = (myData.a[y_p10_index] - '0') * 10 + (myData.a[y_p1_index] - '0');
-
-  // x = 2*JoyC_X - 100;
-  // y = 2*JoyC_Y - 100;
-  x = JoYC_X_Sensitivity * (2*JoyC_X - 100);
-  y = JoYC_Y_Sensitivity * (2*JoyC_Y - 100);
-
-  // Update the rotation and movement of the robot based on the X and Y values
-  Movement_UpdateRotation(x);
-  Movement_UpdateMovement(y);
-
-  cartesianToPolar();
+  
 }
 
-# define PRINT_SENT 0
+# define PRINT_SENT 1
+
+# define DEBUG_BUFF 0
+char buffer[6]; // Buffer to hold the formatted string, including the sign, three digits, and null terminator
+
+String robot_pitch_str = "";
 
 void sendData() {
   RED_LED(1);
   // Structure and data to send as before
-  struct_message myData;
+  struct_message_r myDataR;
 
   // Create a string formatted as (+/-)XX(+/-)YY
 
-  String message = "c";
+  String message = "";
 
-  if (JoyC_X < 10) {
-    message += "+0";
+  if (remote_msg == "ARM") {
+    message = "ARMED";
   }
+  else if (remote_msg == "DISARM") {
+    message = "DISARMED";
+  }
+  else if (remote_msg == "REQUEST_TAKEOFF") {
+    message = "TAKING_OFF";
+  }
+
+
   else {
-    message += "+";
-  }
-  message += String(JoyC_X);
 
-  if (JoyC_Y < 10) {
-    message += "+0";
-  }
-  else {
-    message += "+";
-  }
-  message += String(JoyC_Y);
 
-  //strcpy(myData.a, (if (x < 0) ? "" : "+") + String(x) + (if (y < 0) ? "" : "+") + String(y));
+    if (i_msg % 100 == 0) {
+      message += "s";
 
-  // Move message to myData
-  message.toCharArray(myData.a, 8);
+      sprintf(buffer, "%+02d", isArmed);
+
+      message += buffer;
+
+      sprintf(buffer, "%+03d", perCentBatt);
+
+      message += buffer;
+
+    }
+    else {
+      message += "c";
+    }
+
+
+    if (JoyC_X < 10) {
+      message += "+0";
+    }
+    else {
+      message += "+";
+    }
+    message += String(JoyC_X);
+
+
+
+    if (JoyC_Y < 10) {
+      message += "+0";
+    }
+    else {
+      message += "+";
+    }
+    message += String(JoyC_Y);
+
+    sprintf(buffer, "%+04.0f", Avg_IMU_Z_deg_per_sec);
+
+    message += buffer;
+
+    #if DEBUG_BUFF
+
+    Serial.print("b: " + String(buffer));
+
+    #endif
+
+
+    sprintf(buffer, "%+04.0f", varAng);
+
+    message += buffer;
+
+    #if DEBUG_BUFF
+
+    Serial.print(" b: " + String(buffer));
+
+    #endif
+
+
+    sprintf(buffer, "%+04d", Lmotor);
+
+    message += buffer;
+
+    #if DEBUG_BUFF
+
+    Serial.print(" b: " + String(buffer));
+
+    #endif
+
+
+    sprintf(buffer, "%+04d", Rmotor);
+
+    message += buffer;
+
+    #if DEBUG_BUFF
+
+    Serial.print(" b: " + String(buffer));
+
+    #endif
+
+    sprintf(buffer, "%+03d", BackgroundTask_CPU_load);
+
+    message += buffer;
+
+    #if DEBUG_BUFF
+
+    Serial.print(" b: " + String(buffer));
+
+    #endif
+
+    sprintf(buffer, "%+03d", RealTcode_CPU_load);
+
+    message += buffer;
+
+    #if DEBUG_BUFF
+
+    Serial.print(" b: " + String(buffer));
+
+    #endif
+
+
+  }
+
+  
+
+  // robot_pitch_str = " " + String(int(varAng));
+  //robot_pitch_str = " " + buffer;
+  //myDataS.robot_pitch = varAng;
+  //robot_pitch_str = sscanf(robot_pitch_str.c_str(), " %hhx");
+  //strcpy(myDataR.a, (if (x < 0) ? "" : "+") + String(x) + (if (y < 0) ? "" : "+") + String(y));
+
+  // Move message to myDataR
+  message.toCharArray(myDataS.a, msg_str_len);
+  myDataS.i = i_msg;
 
   // Send message via ESP-NOW
-  esp_err_t result = esp_now_send(broadcastAddress, (uint8_t *) &myData, sizeof(myData));
+  esp_err_t result = esp_now_send(broadcastAddress, (uint8_t *) &myDataS, sizeof(myDataS));
   
   if (result == ESP_OK) {
     #if PRINT_SENT
-    Serial.println("Sent with success, message: " + String(myData.a));
+    Serial.print("Sent: " + String(myDataS.a));
     #endif
   }
   else {
-    Serial.print("Error sending the data: " + String(result) + "myData: " + String(myData.a));
+    Serial.print("Error sending the data: " + String(result) + "myDataR: " + String(myDataR.a));
     //Serial.print(String(*sender_mac, HEX) + ":" + String(*(sender_mac + 1), HEX) + ":" + String(*(sender_mac + 2), HEX) + ":" + String(*(sender_mac + 3), HEX) + ":" + String(*(sender_mac + 4), HEX) + ":" + String(*(sender_mac + 5), HEX));
   }
   RED_LED(0);
@@ -247,7 +398,7 @@ void sendData() {
 }
 
 
-#define DEBUG_converMacAddress 1
+#define DEBUG_converMacAddress 0
 void convertMacAddress(const String &macStr, uint8_t *macAddr) {
 
    // Assumes macStr is in the format "XX:XX:XX:XX:XX:XX"
@@ -269,10 +420,11 @@ String macToString(const uint8_t* mac) {
 }
 
 # define PRINT_MAC_RECEIVED 0
-# define PRINT_BYTES_RECEIVED 0
+# define PRINT_BYTES_RECEIVED 1
 # define PRINT_CPU_RECIVED 0
 # define PRINT_X_Y 0
-// callback function that will be executed when data is received
+// callback function that will be executed when data is receiveD
+
 void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
 
   
@@ -298,10 +450,10 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
     // Add peer
     esp_err_t addPeerResult = esp_now_add_peer(&peerInfo);
     if (addPeerResult != ESP_OK){
-      Serial.println("Failed to add peer:" + String(*peerInfo.peer_addr, HEX) + "\n");
+      Serial.println("Failed to add peer:" + sender_mac_str + "\n");
       return;
     }
-    Serial.println("SUCCESS: Remote found :D MAC: " + String(*mac) + "\n");
+    Serial.println("SUCCESS: Remote found :D MAC: " + sender_mac_str + "\n");
     sender_mac = *mac;
     remote_connected = true;
 
@@ -329,19 +481,25 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
   Serial.print(String(mac[0], HEX) + ":" + String(mac[1], HEX) + ":" + String(mac[2], HEX) + ":" + String(mac[3], HEX) + ":" + String(mac[4], HEX) + ":" + String(mac[5], HEX) + ", ");
   #endif
 
-  memcpy(&myData, incomingData, sizeof(myData));
+  memcpy(&myDataR, incomingData, sizeof(myDataR));
+
+  remote_msg = myDataR.a;
+  i_msg = myDataR.i;
 
   #if PRINT_BYTES_RECEIVED
-  Serial.print(myData.a);
+  Serial.print(myDataR.a);
   Serial.print(", ");
   Serial.print(len);
   #endif
+
 
 
   processCharArray(); // Call the function to process the received data
 
   should_reply_to_C_cmd = true;
   //sendData(); // Send the processed data back to the sender
+
+
 
 
   #if PRINT_X_Y
@@ -357,8 +515,8 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
 
 }
 
-void Wireless_Setup(){
-
+void exec_Wireless_Setup( void * pvParameters) {
+  RED_LED(1);
     WiFi.mode(WIFI_AP_STA); 
     WiFi.begin(ssid, password);
     if (WiFi.waitForConnectResult() != WL_CONNECTED) {
@@ -385,5 +543,29 @@ void Wireless_Setup(){
     // Once ESPNow is successfully Init, we will register for recv CB to
     // get recv packer info
     esp_now_register_recv_cb(OnDataRecv);
+
+    wireless_status = INITIALIZED;
+    RED_LED(0);
+    vTaskDelete(NULL);
+    return;
+}
+
+void Wireless_Setup(){
+
+  if(wireless_status == OFF) {
+    wireless_status = INITIALIZING;
+    xTaskCreatePinnedToCore(
+      exec_Wireless_Setup,   /* Function to implement the task */
+      "exec_Wireless_Setup", /* Name of the task */
+      10000,      /* Stack size in words */
+      NULL,       /* Task input parameter */
+      -2,          /* Priority of the task */
+      NULL,      /* Task handle. */
+      BackgroundCore);         /* Core where the task should run */
+
+    
+  }
+
+
 
 }

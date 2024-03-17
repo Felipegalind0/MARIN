@@ -101,28 +101,30 @@ void LCD_UI_Setup(){
     M5.lcd.fillScreen(BLACK);
 
     canvas.createSprite(135, 240);
-    canvas.fillRect(0, 0, 135, 240, BLACK);
+    canvas.fillRect(0, 0, 145, 240, BLACK);
 
     
 
     // set TFT_eSPI LCD Brightness
     M5.Axp.ScreenBreath(lcd_brightness);
 
+    //LCD_calib1_complete_Message(IMU_has_been_calibrated);
 
-    canvas.setTextFont(2);
-    canvas.setTextSize(1);
-    canvas.setTextColor(WHITE);
 
-    canvas.setCursor(SM_X, SM_Y);
-    canvas.print("Starting Systems");
+    // canvas.setTextFont(2);
+    // canvas.setTextSize(1);
+    // canvas.setTextColor(WHITE);
 
-    LCD_CORE_Message();
+    // canvas.setCursor(SM_X, SM_Y);
+    // canvas.print("Starting Systems");
 
-    LCD_IMU_Message();
+    // LCD_CORE_Message();
 
-    LCD_Felg_Message();
+    // LCD_IMU_Message();
 
-    LCD_flush();
+    // LCD_Felg_Message();
+
+    // LCD_flush();
 }
 
 
@@ -139,7 +141,15 @@ boolean print_RealT_Times = true;
 // This is not a good idea. lets see how long it takes for this to blow up in your face. lets just keep it for now to make things spicy.
 void LCD_Display_IMU_Values(float* IMU_X_dps, float* IMU_Y_dps, float* IMU_Z_dps, float* IMU_X_Gs, float* IMU_Y_Gs, float* IMU_Z_Gs){
 
-    canvas.fillRoundRect(5, 140, 125, 40, 5, WHITE);
+    int LCD_IMU_widget_X = 1;
+    int LCD_IMU_widget_Y = 190;
+    int LCD_IMU_widget_W = 135;
+    int LCD_IMU_widget_H = 40;
+    int LCD_IMU_widget_R = 5;
+    int LCD_IMU_widget_C = WHITE;
+
+    //canvas.fillRoundRect(5, 140, 125, 40, 5, WHITE);
+    canvas.fillRoundRect(LCD_IMU_widget_X, LCD_IMU_widget_Y, LCD_IMU_widget_W, LCD_IMU_widget_H, LCD_IMU_widget_R, LCD_IMU_widget_C);
 
 
     // print Avg_IMU_{axis}_deg_per_ser and Avg_IMU_{axis}_Gs for x,y,z 
@@ -151,20 +161,20 @@ void LCD_Display_IMU_Values(float* IMU_X_dps, float* IMU_Y_dps, float* IMU_Z_dps
 
     canvas.setTextColor(BLACK);
 
-    canvas.setCursor(7, 142);
+    canvas.setCursor(7, LCD_IMU_widget_Y+2);
     canvas.print("dps");
 
     // print XYZ in RGB on the top column of the table
 
-    canvas.setCursor(35, 142);
+    canvas.setCursor(35, LCD_IMU_widget_Y+2);
     canvas.setTextColor(RED);
     canvas.print("X");
 
-    canvas.setCursor(57, 142);
+    canvas.setCursor(57, LCD_IMU_widget_Y+2);
     canvas.setTextColor(GREEN);
     canvas.print("Y");
 
-    canvas.setCursor(87, 142);
+    canvas.setCursor(87, LCD_IMU_widget_Y+2);
     canvas.setTextColor(BLUE);
     canvas.print("Z");
 
@@ -176,7 +186,8 @@ void LCD_Display_IMU_Values(float* IMU_X_dps, float* IMU_Y_dps, float* IMU_Z_dps
     // canvas.setCursor(7, 157);
     // canvas.print("dps");
 
-    canvas.setCursor(7, 172);
+    //canvas.setCursor(7, 172);
+    canvas.setCursor(7, LCD_IMU_widget_Y+30);
     canvas.print("Gs");
 
 
@@ -185,52 +196,59 @@ void LCD_Display_IMU_Values(float* IMU_X_dps, float* IMU_Y_dps, float* IMU_Z_dps
 
     canvas.setTextColor(BLACK);
 
-    canvas.setCursor(7, 153);
+    canvas.setCursor(7, LCD_IMU_widget_Y+13);
 
     canvas.print(*IMU_X_dps);
 
-    canvas.setCursor(55, 153);
+    canvas.setCursor(55, LCD_IMU_widget_Y+13);
 
     canvas.print(*IMU_Y_dps);
 
-    canvas.setCursor(92, 153);
+    canvas.setCursor(92, LCD_IMU_widget_Y+13);
 
     canvas.print(*IMU_Z_dps);
 
-    canvas.setCursor(22, 170);
+    canvas.setCursor(22, LCD_IMU_widget_Y+30);
 
     canvas.print(*IMU_X_Gs);
 
-    canvas.setCursor(55, 170);
-
+    canvas.setCursor(55, LCD_IMU_widget_Y+30);
     canvas.print(*IMU_Y_Gs);
 
-    canvas.setCursor(92, 170);
+    canvas.setCursor(92, LCD_IMU_widget_Y+30);
 
     canvas.print(*IMU_Z_Gs);
-
-    
-
-
-
-
-
 
 }
 
 void LCD_loop(){
 
-    LCD_Western_Artificial_Horizon();
-    
-    LCD_CPU_Widget();
+    if (is_booted && IMU_has_been_init && IMU_has_been_calibrated) { // If Device is booted, run the main code
+        LCD_Western_Artificial_Horizon();
+    }
 
+    
     LCD_DispBatVolt();
 
-    LCD_Display_IMU_Values(&Avg_IMU_X_deg_per_sec, &Avg_IMU_Y_deg_per_sec, &Avg_IMU_Z_deg_per_sec, &Avg_IMU_X_Gs, &Avg_IMU_Y_Gs, &Avg_IMU_Z_Gs);
+    LCD_CPU_Widget();
+
+    if (IMU_has_been_calibrated){
+        LCD_Display_IMU_Values(&Avg_IMU_X_deg_per_sec, &Avg_IMU_Y_deg_per_sec, &Avg_IMU_Z_deg_per_sec, &Avg_IMU_X_Gs, &Avg_IMU_Y_Gs, &Avg_IMU_Z_Gs);
+
+    }
+    else{
+        LCD_calib1_Message();
+    }
+
+    
 
 
     if ((counter % 100) == 0) {
+            
+            LCD_flush();
+        
             updateBatVolt();
+            
             // Serial.print("COM() running on core ");
             // Serial.println(xPortGetCoreID());
             
@@ -297,29 +315,54 @@ void LCD_Felg_Message(void){
 // }
 
 void LCD_calib1_Message(void){
+    canvas.setTextFont(2);
+    canvas.setTextSize(1);
+    canvas.setTextColor(BLACK);
+
+        int color = TFT_RED;
+
+        canvas.fillRoundRect(0, 215,
+        ABORT_M_W+10, 15, ABORT_M_R, color);
+
+    //    canvas.setCursor(Middle_M_X, Middle_M_Y + 25);
+    //    canvas.print("ASDFASDF");
+
+
+    canvas.setCursor(10, 212);
+    //    canvas.print("Gyro Calibrated :D");
+        canvas.print(" Gyro Calibrating ");
+
+    //    canvas.setCursor(40, Middle_  M_Y + 50);
+    //    canvas.print("Complete!");
+
+    //    canvas.setTextColor(WHITE);
 
 }
 
-void LCD_calib1_complete_Message(void){
-   canvas.setTextFont(2);
-   canvas.setTextSize(1);
-   canvas.setTextColor(BLACK);
+// void LCD_calib1_complete_Message(boolean isCalibrated = true){
+//    canvas.setTextFont(2);
+//    canvas.setTextSize(1);
+//    canvas.setTextColor(BLACK);
 
-    canvas.fillRoundRect(Middle_M_X-30, Middle_M_Y-3,
-      ABORT_M_W, ABORT_M_H, ABORT_M_R, WHITE);
+//     int color = isCalibrated ? TFT_GREEN : TFT_RED;
 
-   canvas.setCursor(Middle_M_X, Middle_M_Y);
-   canvas.print("Stationary");
+//     canvas.fillRoundRect(0, 215,
+//       ABORT_M_W+10, 15, ABORT_M_R, color);
+
+// //    canvas.setCursor(Middle_M_X, Middle_M_Y + 25);
+// //    canvas.print("ASDFASDF");
 
 
-   canvas.setCursor(Middle_M_X, Middle_M_Y + 15);
-   canvas.print("Calibration");
+//    canvas.setCursor(10, 212);
+// //    canvas.print("Gyro Calibrated :D");
+//     canvas.print(isCalibrated ? "Gyro Calibrated :D" : 
+//                                 " Gyro Calibrating ");
 
-   canvas.setCursor(Middle_M_X, Middle_M_Y + 30);
-   canvas.print("Complete");
+// //    canvas.setCursor(40, Middle_  M_Y + 50);
+// //    canvas.print("Complete!");
 
-   canvas.setTextColor(WHITE);
-}
+// //    canvas.setTextColor(WHITE);
+// }
 
 void LCD_calib2_Message(void){
    canvas.setTextFont(2);
@@ -588,8 +631,12 @@ void LCD_Western_Artificial_Horizon(){
     // int AH_Y_Offset = robot_Y_deg;
     // int AH_dif_offset = Avg_IMU_Z_deg_per_sec/4;
     
-    int AH_Y_Offset = robot_Y_deg;
+    int AH_Y_Offset = -20 * varAng;
+    // int AH_Y_Offset = pitch;
+    //int AH_Y_Offset = robot_Y_deg;
     int AH_dif_offset = Avg_IMU_Z_deg_per_sec;
+
+    //Serial.println("AH_Y_Offset: " + String(AH_Y_Offset) + " AH_dif_offset: " + String(AH_dif_offset));
 
     // Calculate the horizon line
 
@@ -768,7 +815,7 @@ void LCD_Western_Artificial_Horizon(){
     //     canvas.setTextColor(TFT_DARKGREY);
     // }
 
-    if (IMU_Z_deg_per_sec > 0){
+    if (IMU_Z_deg_per_sec >= 0){
         canvas.print(" "+String(int(IMU_Z_deg_per_sec)));
     }
     else{
@@ -815,8 +862,8 @@ void LCD_Western_Artificial_Horizon(){
     //     canvas.setTextColor(TFT_DARKGREY);
     // }
 
-    if (robot_Y_deg > 0){
-        canvas.print(" "+String(int(robot_Y_deg)));
+    if (robot_Y_deg >= 0){
+        canvas.print(" "+String(int(varAng)));
     }
     else{
         canvas.print(int(robot_Y_deg));

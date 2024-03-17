@@ -10,6 +10,7 @@ int y = 0;  // Defines robot FWD/ROBOT_BACK_SIDE         + = FWD   &   - = ROBOT
 float deviceTemp = -1.0;
 
 
+byte wireless_status = OFF;
 //-----------------System Variables-----------------
 byte robot_config_counter = 0;
 boolean is_booted = false;
@@ -19,6 +20,10 @@ boolean exec_status_has_changed = false;
 TaskHandle_t Task0, Task1;
 
 SemaphoreHandle_t syncSemaphore;
+
+String remote_msg = "";
+
+byte i_msg = 0;
 
 //-----------------Battery Variables-----------------
 
@@ -46,7 +51,7 @@ boolean should_reply_to_C_cmd = false;
 int64_t RealTcode_start_time = 0, RealTcode_end_time = 0, RealTcode_execution_time = 0, RealTcode_no_execution_time = 0, RealTcode_total_execution_time = 0;
 int64_t BackgroundTask_execution_time_start = 0, BackgroundTask_execution_time_end = 0, BackgroundTask_execution_time = 0, BackgroundTask_total_execution_time = 0, BackgroundTask_no_execution_time = 0;
 
-double RealTcode_CPU_load = 0.0, BackgroundTask_CPU_load = 0.0;
+byte RealTcode_CPU_load = 0.0, BackgroundTask_CPU_load = 0.0;
 
 
 
@@ -91,14 +96,23 @@ float varAng = 0.0;
 
 float IMU_X_deg_per_sec = 0.0, IMU_Y_deg_per_sec = 0.0, IMU_Z_deg_per_sec = 0.0;
 
-float varSpd, varDst, varIang;
+float varSpd, varDst, varIang, I_y_dps;
+
+
 
 float gyroXoffset;
-float gyro_deg_per_sec_X_offset, gyro_deg_per_sec_Y_offset, gyro_deg_per_sec_Z_offset, accXoffset, accYoffset, accZoffset;
+
+// float accXoffset, gyro_deg_per_sec_Z_offset; 
+
+float accXoffset, gyro_deg_per_sec_Z_offset; 
+
+float gyro_deg_per_sec_X_offset, gyro_deg_per_sec_Y_offset, accYoffset, accZoffset;
 
 float IMU_RAW_X_dps, IMU_RAW_Y_dps, IMU_RAW_Z_dps, IMU_RAW_X_Gs, IMU_RAW_Y_Gs, IMU_RAW_Z_Gs;
 
-boolean IMU_has_been_calibrated = false, IMU_has_been_init = false;
+boolean IMU_has_been_calibrated = false, IMU_has_been_init = false, IMU_balance_point_has_been_set = false;
+
+byte Wireless_status = OFF;
 float Avg_IMU_X_deg_per_sec = 0.0, Avg_IMU_Y_deg_per_sec = 0.0, Avg_IMU_Z_deg_per_sec = 0.0;
 float Avg_IMU_X_Gs = 0.0, Avg_IMU_Y_Gs = 0.0, Avg_IMU_Z_Gs = 0.0;
 
@@ -132,6 +146,8 @@ boolean hasFallen       = false;
 boolean isArmed         = false;
 boolean abortWasHandled = false;
 
+boolean takeoffRequested = false;
+
 int16_t counter       = 0;
 uint32_t time0 = 0, time1 = 0;
 int16_t counterOverPwr = 0, maxOvp = 80, maxAngle = 40;
@@ -143,11 +159,12 @@ float power, powerR, powerL, yawPower;
 float cutoff            = 0.1;                     //~=2 * pi * f (Hz)
 const float clk         = 0.01;                    // in sec,
 const uint32_t interval = (uint32_t)(clk * 1000);  // in msec
-float Kang, Komg, KIang, Kyaw, Kdst, Kspd;
+float Kang, Komg, KIang, KI_y_dps, Kyaw, Kdst, Kspd;
 int16_t maxPwr;
 
 float yawAngle = 0.0;
 byte heading = 0;
+int takeoffTime = 0;
 
 
 
@@ -184,6 +201,7 @@ void resetVar() {
     spinStep            = 0.0;
     yawAngle            = 0.0;
     varAng              = 0.0;
+    I_y_dps             = 0.0;
     IMU_Y_deg_per_sec   = 0.0;
     varDst              = 0.0;
     varSpd              = 0.0;
@@ -211,7 +229,8 @@ void resetPara() {
     //Kang          = 20.0;
     //Kang          = 37.0;
     //Kang          = 50.0;
-    Kang          = 60.0;
+    // Kang          = 60.0;
+    Kang          = 65.0;
     //Kang          = 70.0; BAD makes the robot quickly ocilate in pitch, it does not fall, but you can hear the motors working hard
 
     //Komg          = 0.84;
@@ -219,13 +238,18 @@ void resetPara() {
     //Komg          = 1.5;
     //Komg          = 1.7;
     Komg          = 2.0;
-    //Komg          = 3; BAD makes the robot very quickly ocilate in pitch, it does not fall, but you can hear the motors working hard
+    //Komg          = 2.2;
+    //Komg          = 3; //BAD makes the robot very quickly ocilate in pitch, it does not fall, but you can hear the motors working hard
 
     //KIang         = 400.0;
     //KIang         = 800.0;
     //KIang         = 1000.0; 
     //KIang         = 1200.0; //better
-    KIang         = 1400.0; //Maybe better
+    //KIang         = 1400.0; //Maybe better
+    //KIang         = 2200.0; //Maybe better
+    KIang         = 2400.0; //Maybe better
+
+    KI_y_dps         = 10.0; //Maybe better
 
     //Kyaw          = 1.0;
     Kyaw          = 4.0;
@@ -234,25 +258,29 @@ void resetPara() {
     //kdst seems to scale the response of the robot to forward/backward 
     //(X axis) movement
     //Kdst          = 5.0;
-    Kdst          = 100.0; // best
     //Kdst          = 85.0;
+    //Kdst          = 100.0; // best
     //Kdst          = 130.0;
-    //Kdst          = 200.0;
+    // Kdst          = 200.0;
+    Kdst          = 300.0;
     //Kdst          = 385.0; // BAD: Medium speed ocilations
 
     //Kspd          = 2.7;
     //Kspd          = 4.7;
     //Kspd          = 7.0;
-    Kspd          = 8.0;
-    //Kspd          = 9.0;
+    //Kspd          = 8.0;
+    Kspd          = 9.0;
     //Kspd          = 10.0; // too much
 
-    mechFactL     = 0.45;
-    mechFactR     = 0.45;
-    punchPwr      = 20;
+    mechFactL     = 0.5;
+    mechFactR     = 0.5;
+    // punchPwr      = 10;
+    punchPwr      = 2;
     punchDur      = 1;
-    fbBalance     = -3;
-    motorDeadband = 10;
+    //fbBalance     = -3;
+    fbBalance     = 0;
+    motorDeadband = 5;
+    //motorDeadband = 10;
     maxPwr        = 126;
     punchPwr2     = max(punchPwr, motorDeadband);
 }
